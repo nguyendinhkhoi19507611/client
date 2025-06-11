@@ -1,4 +1,5 @@
-// client/src/components/UI/index.js - Basic UI components exports
+// client/src/components/UI/index.jsx - Basic UI components exports
+import React from 'react';
 
 // Button Component
 export const Button = ({ 
