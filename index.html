@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/piano-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="BigCoin Piano - Mine cryptocurrency by playing piano. Earn real money while improving your musical skills!" />
+    <meta name="keywords" content="piano, cryptocurrency, blockchain, music, gaming, bigcoin, earn money" />
+    <meta name="author" content="BigCoin Piano Team" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bigcoin-piano.com/" />
+    <meta property="og:title" content="BigCoin Piano - Mine Crypto by Playing Piano" />
+    <meta property="og:description" content="The world's first blockchain-powered piano game. Earn real cryptocurrency while mastering your musical skills!" />
+    <meta property="og:image" content="/og-image.jpg" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://bigcoin-piano.com/" />
+    <meta property="twitter:title" content="BigCoin Piano - Mine Crypto by Playing Piano" />
+    <meta property="twitter:description" content="The world's first blockchain-powered piano game. Earn real cryptocurrency while mastering your musical skills!" />
+    <meta property="twitter:image" content="/og-image.jpg" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BigCoin Piano" />
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="/fonts/Inter-VariableFont.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Orbitron-VariableFont.woff2" as="font" type="font/woff2" crossorigin />
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    
+    <title>BigCoin Piano - Mine Cryptocurrency by Playing Piano</title>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "BigCoin Piano",
+      "description": "Mine cryptocurrency by playing piano. The world's first blockchain-powered piano game.",
+      "url": "https://bigcoin-piano.com",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "BigCoin Piano Team"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #111827 0%, #1e3a8a 50%, #7c3aed 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-in-out;
+    ">
+      <div style="text-align: center; color: white;">
+        <div style="
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 20px;
+          background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: pulse 2s infinite;
+        ">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </div>
+        <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 10px 0;">BigCoin Piano</h1>
+        <p style="font-size: 14px; opacity: 0.8; margin: 0;">Loading your musical journey...</p>
+        <div style="
+          width: 200px;
+          height: 4px;
+          background: rgba(255,255,255,0.2);
+          border-radius: 2px;
+          margin: 20px auto;
+          overflow: hidden;
+        ">
+          <div style="
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+            animation: loading 3s ease-in-out infinite;
+          "></div>
+        </div>
+      </div>
+    </div>
+    
+    <style>
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      
+      @keyframes loading {
+        0% { width: 0%; }
+        50% { width: 60%; }
+        100% { width: 100%; }
+      }
+      
+      /* Hide loading screen when app loads */
+      .app-loaded #loading-screen {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+    
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Hide loading screen when DOM is ready -->
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          document.body.classList.add('app-loaded');
+          setTimeout(function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+              loadingScreen.remove();
+            }
+          }, 500);
+        }, 1000);
+      });
+      
+      // Error handling for older browsers
+      window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error);
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.innerHTML = `
+            <div style="text-align: center; color: white;">
+              <h2>Browser Compatibility Issue</h2>
+              <p>Please use a modern browser to access BigCoin Piano</p>
+              <p>Recommended: Chrome 90+, Firefox 88+, Safari 14+</p>
+            </div>
+          `;
+        }
+      });
+    </script>
+  </body>
+</html>
