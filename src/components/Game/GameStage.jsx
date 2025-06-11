@@ -1,9 +1,9 @@
 // client/src/components/Game/GameStage.jsx - Virtual stage with LED effects and animations
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGame } from '@contexts/GameContext';
-import { useAudio } from '@contexts/AudioContext';
 import clsx from 'clsx';
+import { useGame } from '../../contexts/GameContext';
+import { useAudio } from '../../contexts/AudioContext';
 
 // LED Ring Component
 const LEDRing = ({ colors = [], intensity = 1, speed = 1, pattern = 'chase' }) => {

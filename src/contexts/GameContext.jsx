@@ -1,11 +1,10 @@
 // client/src/contexts/GameContext.jsx - Game state management context
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
-import { gameService } from '@services/gameService';
-import { socketService } from '@services/socketService';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
-
+import { gameService } from '../services/gameService';
+import { socketService } from '../services/socketService';
 // Game Context
 const GameContext = createContext();
 

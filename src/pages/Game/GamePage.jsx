@@ -20,18 +20,19 @@ import {
 } from 'lucide-react';
 
 // Components
-import GameStage from '@components/Game/GameStage';
-import { GamePiano } from '@components/Game/Piano';
-import LoadingSpinner from '@components/UI/LoadingSpinner';
-import Button from '@components/UI/Button';
-import Modal from '@components/UI/Modal';
+import GameStage from '../../components/Game/GameStage';
+import { GamePiano } from '../../components/Game/Piano';
+import { musicService } from '../../services/musicService';
+import Button from '../../components/UI/Button';
+import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import Modal from '../../components/UI/Modal';
 
 // Contexts and Services
-import { useGame, GAME_STATES } from '@contexts/GameContext';
-import { useAuth } from '@contexts/AuthContext';
-import { useAudio } from '@contexts/AudioContext';
-import { musicService } from '@services/musicService';
-import { formatTime, formatNumber } from '@utils/formatters';
+import { useGame, GAME_STATES } from '../../contexts/GameContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useAudio } from '../../contexts/AudioContext';
+import { musicService } from '../../services/musicService';
+import { formatTime, formatNumber } from '../../utils/formatters';
 
 // Game Settings Modal
 const GameSettingsModal = ({ isOpen, onClose, onSave }) => {

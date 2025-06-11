@@ -20,11 +20,11 @@ import {
   List
 } from 'lucide-react';
 
-import { musicService } from '@services/musicService';
-import { useAuth } from '@contexts/AuthContext';
-import Button from '@components/UI/Button';
-import LoadingSpinner from '@components/UI/LoadingSpinner';
-import { formatTime, formatNumber } from '@utils/formatters';
+import { useAuth } from '../../contexts/AuthContext';
+import { formatTime, formatNumber } from '../../utils/formatters';
+import { musicService } from '../../services/musicService';
+import Button from '../../components/UI/Button';
+import LoadingSpinner from '../../components/UI/LoadingSpinner';
 
 // Music Card Component
 const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {

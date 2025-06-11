@@ -15,12 +15,12 @@ import {
   Star,
   CheckCircle
 } from 'lucide-react';
-import { useAuth } from '@contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useQuery } from 'react-query';
-import { musicService } from '@services/musicService';
-import Button from '@components/UI/Button';
 import { formatNumber } from '@utils/formatters';
-
+import { musicService } from '../../services/musicService';
+import Button from '../../components/UI/Button';
+import { formatNumber } from '../../utils/formatters';
 // Hero Section Component
 const HeroSection = () => {
   const navigate = useNavigate();

@@ -1,8 +1,7 @@
-// client/src/components/Auth/ProtectedRoute.jsx - Protected route wrapper
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSpinner } from '@/components/UI';
+import { useAuth } from '../../contexts/AuthContext';
+import LoadingSpinner from '../UI/LoadingSpinner';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();

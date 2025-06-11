@@ -1,4 +1,4 @@
-// client/src/App.jsx - Main application component with routing and providers
+// client/src/App.jsx - Main application component with routing and providers (CORRECTED)
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
@@ -7,37 +7,31 @@ import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from 'react-error-boundary';
 
 // Providers and Context
-import { AuthProvider } from '@/contexts/AuthContext';
-import { GameProvider } from '@/contexts/GameContext';
-import { AudioProvider } from '@/contexts/AudioContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { GameProvider } from './contexts/GameContext';
+import { AudioProvider } from './contexts/AudioContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Layout Components
-import Layout from '@components/Layout/Layout';
-import LoadingSpinner from '@components/UI/LoadingSpinner';
-import ErrorFallback from '@components/UI/ErrorFallback';
+import Layout from './components/Layout/Layout';
+import LoadingSpinner from './components/UI/LoadingSpinner';
+import ErrorFallback from './components/UI/ErrorFallback';
 
 // Lazy load pages for better performance
-const HomePage = React.lazy(() => import('@pages/Home/HomePage'));
-const LoginPage = React.lazy(() => import('@pages/Auth/LoginPage'));
-const RegisterPage = React.lazy(() => import('@pages/Auth/RegisterPage'));
-const GamePage = React.lazy(() => import('@pages/Game/GamePage'));
-const MusicLibraryPage = React.lazy(() => import('@pages/Music/MusicLibraryPage'));
-const ProfilePage = React.lazy(() => import('@pages/Profile/ProfilePage'));
-const DashboardPage = React.lazy(() => import('@pages/Dashboard/DashboardPage'));
-const PaymentPage = React.lazy(() => import('@pages/Payment/PaymentPage'));
-const LeaderboardPage = React.lazy(() => import('@pages/Leaderboard/LeaderboardPage'));
-const SettingsPage = React.lazy(() => import('@pages/Settings/SettingsPage'));
-const KYCPage = React.lazy(() => import('@pages/KYC/KYCPage'));
-const PremiumPage = React.lazy(() => import('@pages/Premium/PremiumPage'));
-const NotFoundPage = React.lazy(() => import('@pages/NotFound/NotFoundPage'));
+const HomePage = React.lazy(() => import('./pages/Home/HomePage'));
+const LoginPage = React.lazy(() => import('./pages/Auth/LoginPage'));
+const RegisterPage = React.lazy(() => import('./pages/Auth/RegisterPage'));
+const GamePage = React.lazy(() => import('./pages/Game/GamePage'));
+const MusicLibraryPage = React.lazy(() => import('./pages/Music/MusicLibraryPage'));
+const DashboardPage = React.lazy(() => import('./pages/Dashboard/DashboardPage'));
+const NotFoundPage = React.lazy(() => import('./pages/NotFound/NotFoundPage'));
 
 // Protected Route Component
-import ProtectedRoute from '@components/Auth/ProtectedRoute';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 // Global Styles
-import '@styles/globals.css';
+import './styles/globals.css';
 
 // React Query Client Configuration
 const queryClient = new QueryClient({
@@ -89,8 +83,6 @@ function App() {
                               <Route path="login" element={<LoginPage />} />
                               <Route path="register" element={<RegisterPage />} />
                               <Route path="music" element={<MusicLibraryPage />} />
-                              <Route path="leaderboard" element={<LeaderboardPage />} />
-                              <Route path="premium" element={<PremiumPage />} />
                               
                               {/* Protected Routes */}
                               <Route path="dashboard" element={
@@ -102,30 +94,6 @@ function App() {
                               <Route path="game" element={
                                 <ProtectedRoute>
                                   <GamePage />
-                                </ProtectedRoute>
-                              } />
-                              
-                              <Route path="profile" element={
-                                <ProtectedRoute>
-                                  <ProfilePage />
-                                </ProtectedRoute>
-                              } />
-                              
-                              <Route path="payment" element={
-                                <ProtectedRoute>
-                                  <PaymentPage />
-                                </ProtectedRoute>
-                              } />
-                              
-                              <Route path="settings" element={
-                                <ProtectedRoute>
-                                  <SettingsPage />
-                                </ProtectedRoute>
-                              } />
-                              
-                              <Route path="kyc" element={
-                                <ProtectedRoute>
-                                  <KYCPage />
                                 </ProtectedRoute>
                               } />
                               

@@ -1,11 +1,10 @@
 // client/src/components/Game/Piano.jsx - Interactive piano keyboard component
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAudio } from '@contexts/AudioContext';
-import { useGame } from '@contexts/GameContext';
-import { PIANO_KEYS, NOTE_FREQUENCIES } from '@utils/pianoConstants';
 import clsx from 'clsx';
-
+import { useAudio } from '../../contexts/AudioContext';
+import { useGame } from '../../contexts/GameContext';
+import { PIANO_KEYS, NOTE_FREQUENCIES } from '../../utils/pianoConstants';
 // Piano Key Component
 const PianoKey = ({ 
   note, 

@@ -1,10 +1,9 @@
 // client/src/contexts/AuthContext.jsx - Authentication context and provider
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { authService } from '@services/authService';
-import { tokenManager } from '@utils/tokenManager';
+import { tokenManager } from '../utils/tokenManager';
 import { toast } from 'react-hot-toast';
-
+import { authService } from '../services/authService';
 // Auth Context
 const AuthContext = createContext();
 
