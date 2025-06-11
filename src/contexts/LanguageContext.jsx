@@ -1,4 +1,4 @@
-// client/src/contexts/LanguageContext.jsx - Internationalization context
+// Internationalization context
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
 // Language Context

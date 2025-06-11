@@ -1,4 +1,4 @@
-// client/src/services/gameService.js - Game API service
+// Game API service
 import api from './index';
 
 export const gameService = {

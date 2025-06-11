@@ -1,4 +1,4 @@
-// client/src/services/socketService.js - Socket.IO service for real-time features
+// Socket.IO service for real-time features
 import { io } from 'socket.io-client';
 import { tokenManager } from '../utils/tokenManager';
 

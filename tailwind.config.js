@@ -1,4 +1,4 @@
-// client/tailwind.config.js - Tailwind CSS configuration with custom theme
+
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [

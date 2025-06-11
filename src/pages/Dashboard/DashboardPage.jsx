@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard/DashboardPage.jsx - User dashboard page
+// User dashboard page
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';

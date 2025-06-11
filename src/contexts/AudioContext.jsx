@@ -1,4 +1,4 @@
-// client/src/contexts/AudioContext.jsx - Audio management context
+//  Audio management context
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import * as Tone from 'tone';
 import { NOTE_FREQUENCIES } from '../utils/pianoConstants';

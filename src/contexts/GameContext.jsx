@@ -1,4 +1,4 @@
-// client/src/contexts/GameContext.jsx - Game state management context
+// Game state management context
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import { toast } from 'react-hot-toast';

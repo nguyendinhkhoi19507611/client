@@ -1,4 +1,4 @@
-// client/src/contexts/ThemeContext.jsx - Theme management context
+// Theme management context
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
 // Theme Context

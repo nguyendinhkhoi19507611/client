@@ -1,4 +1,4 @@
-// client/src/pages/Music/MusicLibraryPage.jsx - Music library and browse page
+// Music library and browse page
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from 'react-query';

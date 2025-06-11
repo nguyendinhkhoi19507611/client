@@ -1,4 +1,4 @@
-// client/src/services/index.js - API services setup and configuration (FIXED)
+// API services setup and configuration 
 import axios from 'axios';
 import { tokenManager } from '../utils/tokenManager';
 

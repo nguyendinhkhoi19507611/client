@@ -1,9 +1,10 @@
-// client/src/contexts/AuthContext.jsx - Authentication context and provider
+// Authentication context and provider
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { tokenManager } from '../utils/tokenManager';
 import { toast } from 'react-hot-toast';
 import { authService } from '../services/authService';
+
 // Auth Context
 const AuthContext = createContext();
 
@@ -381,7 +382,11 @@ export const withAuth = (Component) => {
     }
     
     if (!isAuthenticated) {
-      return <Navigate to="/login" replace />;
+      // Instead of Navigate, redirect using window.location
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+      return null;
     }
     
     return <Component {...props} />;

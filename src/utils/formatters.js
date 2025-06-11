@@ -1,4 +1,4 @@
-// client/src/utils/formatters.js - Formatting utility functions
+
 
 // Format numbers with commas
 export const formatNumber = (num) => {

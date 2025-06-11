@@ -8,7 +8,9 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
 
   const handleGoHome = () => {
     navigate('/');
-    resetErrorBoundary();
+    if (resetErrorBoundary) {
+      resetErrorBoundary();
+    }
   };
 
   const handleReload = () => {

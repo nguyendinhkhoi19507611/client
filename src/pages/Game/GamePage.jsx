@@ -1,4 +1,4 @@
-// client/src/pages/Game/GamePage.jsx - Main game page with piano interface
+// Main game page with piano interface
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -22,7 +22,6 @@ import {
 // Components
 import GameStage from '../../components/Game/GameStage';
 import { GamePiano } from '../../components/Game/Piano';
-import { musicService } from '../../services/musicService';
 import Button from '../../components/UI/Button';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import Modal from '../../components/UI/Modal';

@@ -1,4 +1,4 @@
-// client/src/services/musicService.js - Music API service
+//  Music API service
 import api from './index';
 
 export const musicService = {

@@ -1,6 +1,6 @@
-// client/src/pages/Home/HomePage.jsx - Landing page with hero section and features
+// Landing page with hero section and features
 import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Play, 

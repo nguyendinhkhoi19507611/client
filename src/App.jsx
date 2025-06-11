@@ -1,4 +1,4 @@
-// client/src/App.jsx - Main application component with routing and providers (CORRECTED)
+
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
