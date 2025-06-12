@@ -1,4 +1,4 @@
-// client/src/components/Game/GameStage.jsx - Virtual stage with LED effects and animations
+// client/src/components/Game/GameStage.jsx - Enhanced with dancing characters
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
@@ -102,154 +102,181 @@ const Spotlight = ({ x = 50, y = 50, size = 300, color = 'white', intensity = 0.
   );
 };
 
-// Animated Character Component
-const AnimatedCharacter = ({ isPlaying, score, combo, accuracy }) => {
-  const [animation, setAnimation] = useState('idle');
-  const [mood, setMood] = useState('neutral');
+// Dancing Character Component - Uses the uploaded images
+const DancingCharacter = ({ 
+  imageSrc, 
+  position, 
+  isPlaying, 
+  combo, 
+  lastKeystrokeTime,
+  className = '' 
+}) => {
+  const [danceMove, setDanceMove] = useState(0);
+  const [isDancing, setIsDancing] = useState(false);
+  const [idleTimer, setIdleTimer] = useState(null);
   
+  // Check if character should be dancing based on recent activity
   useEffect(() => {
     if (!isPlaying) {
-      setAnimation('idle');
-      setMood('neutral');
+      setIsDancing(false);
       return;
     }
     
-    // Determine mood based on performance
-    if (accuracy >= 95) {
-      setMood('excellent');
-      setAnimation('dancing');
-    } else if (accuracy >= 80) {
-      setMood('good');
-      setAnimation('nodding');
-    } else if (accuracy >= 60) {
-      setMood('okay');
-      setAnimation('swaying');
-    } else {
-      setMood('struggling');
-      setAnimation('worried');
+    // Start dancing when there's a keystroke
+    if (lastKeystrokeTime) {
+      setIsDancing(true);
+      
+      // Clear existing timer
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+      
+      // Set new timer to stop dancing after 5 seconds of inactivity
+      const newTimer = setTimeout(() => {
+        setIsDancing(false);
+      }, 5000); // 5 seconds
+      
+      setIdleTimer(newTimer);
     }
-  }, [isPlaying, accuracy]);
+    
+    return () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+      }
+    };
+  }, [lastKeystrokeTime, isPlaying]);
   
+  // Dance move animation when dancing
   useEffect(() => {
-    if (combo >= 50) {
-      setAnimation('celebrating');
-      setTimeout(() => setAnimation('dancing'), 1000);
-    }
-  }, [combo]);
+    if (!isDancing) return;
+    
+    const interval = setInterval(() => {
+      setDanceMove(prev => (prev + 1) % 3);
+    }, 500 + Math.random() * 500); // Random dance timing
+    
+    return () => clearInterval(interval);
+  }, [isDancing]);
   
-  const characterVariants = {
-    idle: {
-      y: [0, -5, 0],
-      rotate: [0, 1, -1, 0],
-      transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' }
-    },
-    dancing: {
-      y: [0, -15, 0, -10, 0],
-      rotate: [0, 5, -5, 3, 0],
-      scale: [1, 1.05, 1, 1.02, 1],
-      transition: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
-    },
-    nodding: {
-      rotate: [0, 8, -8, 0],
-      y: [0, -3, 0],
-      transition: { duration: 1, repeat: Infinity, ease: 'easeInOut' }
-    },
-    swaying: {
-      rotate: [0, 3, -3, 0],
-      x: [0, 5, -5, 0],
-      transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
-    },
-    worried: {
-      y: [0, -2, 0],
-      rotate: [0, -2, 2, 0],
-      transition: { duration: 0.5, repeat: Infinity, ease: 'easeInOut' }
-    },
-    celebrating: {
-      y: [0, -30, 0],
-      rotate: [0, 360],
-      scale: [1, 1.2, 1],
-      transition: { duration: 1, ease: 'easeOut' }
-    }
+  const getDanceAnimation = () => {
+    // Always return idle if not dancing (standing still)
+    if (!isDancing || !isPlaying) return 'idle';
+    
+    // Dance intensity based on combo
+    if (combo >= 50) return 'energetic';
+    if (combo >= 25) return 'active';
+    if (combo >= 10) return 'moderate';
+    return 'gentle';
   };
   
-  const getMoodColor = () => {
-    switch (mood) {
-      case 'excellent': return 'from-green-400 to-emerald-500';
-      case 'good': return 'from-blue-400 to-cyan-500';
-      case 'okay': return 'from-yellow-400 to-orange-500';
-      case 'struggling': return 'from-red-400 to-pink-500';
-      default: return 'from-purple-400 to-indigo-500';
+  const danceVariants = {
+    idle: {
+      y: 0,
+      rotate: 0,
+      scale: 1,
+      x: 0,
+      transition: { duration: 0.3, ease: 'easeOut' }
+    },
+    gentle: {
+      y: [0, -8, 0, -5, 0],
+      rotate: [0, 2, -2, 1, 0],
+      scale: [1, 1.02, 1, 1.01, 1],
+      transition: { duration: 1, repeat: Infinity, ease: 'easeInOut' }
+    },
+    moderate: {
+      y: [0, -12, 0, -8, 0],
+      rotate: [0, 5, -5, 3, 0],
+      scale: [1, 1.05, 1, 1.03, 1],
+      x: [0, 2, -2, 0],
+      transition: { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
+    },
+    active: {
+      y: [0, -15, 0, -10, 0, -12, 0],
+      rotate: [0, 8, -8, 5, -3, 0],
+      scale: [1, 1.08, 1, 1.05, 1, 1.03, 1],
+      x: [0, 5, -5, 3, -2, 0],
+      transition: { duration: 0.6, repeat: Infinity, ease: 'easeInOut' }
+    },
+    energetic: {
+      y: [0, -20, 0, -15, 0, -18, 0],
+      rotate: [0, 15, -15, 10, -8, 12, 0],
+      scale: [1, 1.12, 1, 1.08, 1, 1.1, 1],
+      x: [0, 8, -8, 5, -5, 3, 0],
+      transition: { duration: 0.4, repeat: Infinity, ease: 'easeInOut' }
     }
   };
   
   return (
-    <div className="character-container absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20">
-      <motion.div
-        className={clsx(
-          'character w-24 h-32 bg-gradient-to-b rounded-lg shadow-2xl relative overflow-hidden',
-          getMoodColor()
-        )}
-        variants={characterVariants}
-        animate={animation}
-      >
-        {/* Character Face */}
-        <div className="absolute inset-2 bg-white/20 rounded-lg">
-          {/* Eyes */}
-          <div className="absolute top-4 left-3 w-2 h-2 bg-white rounded-full"></div>
-          <div className="absolute top-4 right-3 w-2 h-2 bg-white rounded-full"></div>
-          
-          {/* Mouth based on mood */}
-          <div className={clsx(
-            'absolute top-8 left-1/2 transform -translate-x-1/2 w-4 h-2 bg-white rounded-full',
-            {
-              'rotate-0': mood === 'excellent' || mood === 'good',
-              'rotate-180': mood === 'struggling',
-              'w-3 h-1': mood === 'okay' || mood === 'neutral'
-            }
-          )}></div>
-          
-          {/* Musical notes when performing well */}
-          <AnimatePresence>
-            {(mood === 'excellent' || mood === 'good') && (
-              <motion.div
-                initial={{ opacity: 0, y: 0, scale: 0 }}
-                animate={{ 
-                  opacity: [0, 1, 0], 
-                  y: -20, 
-                  scale: [0, 1, 1.2],
-                  rotate: [0, 10, -10, 0]
-                }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                className="absolute -top-6 -right-2 text-white text-lg"
-              >
-                ♪
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+    <motion.div
+      className={clsx('absolute pointer-events-none', className)}
+      style={{
+        left: `${position.x}%`,
+        bottom: `${position.y}%`,
+        transform: 'translate(-50%, 0)'
+      }}
+      variants={danceVariants}
+      animate={getDanceAnimation()}
+    >
+      <div className="relative">
+        {/* Character Image */}
+        <img
+          src={imageSrc}
+          alt="Dancing character"
+          className="w-24 h-32 object-contain drop-shadow-2xl"
+          style={{
+            filter: `brightness(${isDancing ? 1.1 : 0.9}) saturate(${combo >= 25 && isDancing ? 1.3 : 1})`
+          }}
+        />
         
-        {/* Character Glow Effect */}
-        <div className={clsx(
-          'absolute inset-0 rounded-lg opacity-30 blur-sm',
-          getMoodColor()
-        )}></div>
-      </motion.div>
-      
-      {/* Score Popup */}
-      <AnimatePresence>
-        {score > 0 && (
+        {/* Glow effect for high combos - only when dancing */}
+        {combo >= 25 && isDancing && (
           <motion.div
-            initial={{ opacity: 0, y: 0, scale: 0.5 }}
-            animate={{ opacity: 1, y: -40, scale: 1 }}
-            exit={{ opacity: 0, y: -60, scale: 0.5 }}
-            className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-3 py-1 rounded-lg text-sm font-bold"
+            className="absolute inset-0 rounded-full"
+            animate={{
+              boxShadow: [
+                '0 0 20px rgba(59, 130, 246, 0.5)',
+                '0 0 40px rgba(168, 85, 247, 0.7)',
+                '0 0 20px rgba(59, 130, 246, 0.5)'
+              ]
+            }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+        )}
+        
+        {/* Musical notes animation - only when dancing */}
+        {isDancing && combo >= 10 && (
+          <motion.div
+            initial={{ opacity: 0, y: 0, scale: 0 }}
+            animate={{ 
+              opacity: [0, 1, 0], 
+              y: -30, 
+              scale: [0, 1, 1.2],
+              rotate: [0, 10, -10, 0]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity, 
+              repeatDelay: 1 + Math.random() 
+            }}
+            className="absolute -top-8 -right-2 text-yellow-400 text-lg"
           >
-            +{score}
+            {['♪', '♫', '♬'][Math.floor(Math.random() * 3)]}
           </motion.div>
         )}
-      </AnimatePresence>
-    </div>
+        
+        {/* Combo burst effect - only when dancing */}
+        <AnimatePresence>
+          {combo > 0 && combo % 25 === 0 && isDancing && (
+            <motion.div
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: 2, opacity: 0 }}
+              exit={{ scale: 3, opacity: 0 }}
+              transition={{ duration: 1 }}
+              className="absolute inset-0 border-4 border-yellow-400 rounded-full"
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 
@@ -334,17 +361,41 @@ const GameStage = ({ className = '' }) => {
   
   const { volume, isPlaying } = useAudio();
   const [stageEffects, setStageEffects] = useState([]);
-  const [ledColors, setLedColors] = useState(['bg-game-led-blue']);
+  const [ledColors, setLedColors] = useState(['bg-blue-500']);
   const [spotlights, setSpotlights] = useState([]);
+  const [lastKeystrokeTime, setLastKeystrokeTime] = useState(null);
+
+  // Character images - You'll need to add these to your public folder
+  const characters = [
+    {
+      src: '/images/character1.gif', // Your first character GIF
+      position: { x: 20, y: 15 }
+    },
+    {
+      src: '/images/character2.gif', // Your second character GIF  
+      position: { x: 50, y: 10 }
+    },
+    {
+      src: '/images/character3.gif', // Your third character GIF
+      position: { x: 80, y: 15 }
+    }
+  ];
+
+  // Track last keystroke time for character dancing
+  useEffect(() => {
+    if (recentKeystrokes.length > 0) {
+      setLastKeystrokeTime(Date.now());
+    }
+  }, [recentKeystrokes]);
   
   // LED color patterns based on game state
   const ledPatterns = useMemo(() => ({
-    idle: ['bg-game-led-blue', 'bg-game-led-purple'],
-    playing: ['bg-game-led-green', 'bg-game-led-blue', 'bg-game-led-purple'],
-    excellent: ['bg-game-led-green', 'bg-game-led-yellow'],
-    good: ['bg-game-led-blue', 'bg-game-led-indigo'],
-    combo: ['bg-game-led-red', 'bg-game-led-orange', 'bg-game-led-yellow'],
-    completed: ['bg-game-led-green', 'bg-game-led-blue', 'bg-game-led-purple', 'bg-game-led-yellow']
+    idle: ['bg-blue-500', 'bg-purple-500'],
+    playing: ['bg-green-500', 'bg-blue-500', 'bg-purple-500'],
+    excellent: ['bg-green-500', 'bg-yellow-400'],
+    good: ['bg-blue-500', 'bg-indigo-500'],
+    combo: ['bg-red-500', 'bg-orange-500', 'bg-yellow-400'],
+    completed: ['bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-yellow-400']
   }), []);
   
   // Update LED colors based on performance
@@ -407,9 +458,9 @@ const GameStage = ({ className = '' }) => {
     }
     
     const newSpotlights = [
-      { x: 30, y: 50, size: 300, color: 'rgba(34, 197, 94, 0.4)', intensity: 0.7 },
-      { x: 70, y: 50, size: 300, color: 'rgba(168, 85, 247, 0.4)', intensity: 0.7 },
-      { x: 50, y: 30, size: 500, color: 'rgba(59, 130, 246, 0.2)', intensity: 0.5 }
+      { x: 20, y: 50, size: 250, color: 'rgba(34, 197, 94, 0.4)', intensity: 0.7 },
+      { x: 50, y: 40, size: 300, color: 'rgba(168, 85, 247, 0.4)', intensity: 0.8 },
+      { x: 80, y: 50, size: 250, color: 'rgba(59, 130, 246, 0.4)', intensity: 0.7 }
     ];
     
     setSpotlights(newSpotlights);
@@ -446,13 +497,18 @@ const GameStage = ({ className = '' }) => {
         <Spotlight key={index} {...spotlight} />
       ))}
       
-      {/* Animated Character */}
-      <AnimatedCharacter
-        isPlaying={isGameActive()}
-        score={score.current}
-        combo={score.combo}
-        accuracy={stats.accuracy}
-      />
+      {/* Dancing Characters */}
+      {characters.map((character, index) => (
+        <DancingCharacter
+          key={index}
+          imageSrc={character.src}
+          position={character.position}
+          isPlaying={isGameActive()}
+          combo={score.combo}
+          lastKeystrokeTime={lastKeystrokeTime}
+          className={`character-${index + 1}`}
+        />
+      ))}
       
       {/* Particle Effects */}
       <ParticleSystem
@@ -599,10 +655,10 @@ const GameStage = ({ className = '' }) => {
       </div>
       
       {/* Corner Decorations */}
-      <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-gold-400 opacity-50"></div>
-      <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-gold-400 opacity-50"></div>
-      <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-gold-400 opacity-50"></div>
-      <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-gold-400 opacity-50"></div>
+      <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-yellow-400 opacity-50"></div>
+      <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-yellow-400 opacity-50"></div>
+      <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-yellow-400 opacity-50"></div>
+      <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-yellow-400 opacity-50"></div>
     </div>
   );
 };

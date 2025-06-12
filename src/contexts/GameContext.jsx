@@ -1,4 +1,4 @@
-// src/contexts/GameContext.jsx - Updated with continuous scoring
+// src/contexts/GameContext.jsx - Fixed with progressive scoring and combo multipliers
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -56,7 +56,9 @@ const initialState = {
     current: 0,
     combo: 0,
     maxCombo: 0,
-    multiplier: 1
+    multiplier: 1,
+    totalKeyPresses: 0,
+    basePointsPerKey: 10
   },
 
   stats: {
@@ -220,7 +222,10 @@ const gameReducer = (state, action) => {
         startTime: new Date(),
         currentTime: 0,
         progress: 0,
-        score: { ...initialState.score },
+        score: { 
+          ...initialState.score,
+          basePointsPerKey: 10 // Reset base points
+        },
         stats: { ...initialState.stats },
         keystrokes: [],
         recentKeystrokes: [],
@@ -257,13 +262,16 @@ const gameReducer = (state, action) => {
       };
 
     case GAME_ACTIONS.UPDATE_COMBO:
+      const newCombo = action.payload;
+      const newMultiplier = Math.floor(newCombo / 10) + 1; // Every 10 combo = +1 multiplier
+      
       return {
         ...state,
         score: {
           ...state.score,
-          combo: action.payload,
-          maxCombo: Math.max(state.score.maxCombo, action.payload),
-          multiplier: Math.floor(action.payload / 10) + 1 // Increase multiplier every 10 combo
+          combo: newCombo,
+          maxCombo: Math.max(state.score.maxCombo, newCombo),
+          multiplier: newMultiplier
         }
       };
 
@@ -322,14 +330,15 @@ const gameReducer = (state, action) => {
   }
 };
 
-// Enhanced reward calculation
+// Enhanced reward calculation with progressive scoring
 const calculateRewards = (state) => {
-  const baseCoins = Math.floor(state.score.current * 0.01);
-  const comboBonus = state.score.maxCombo >= 100 ? 50 : 
-                    state.score.maxCombo >= 50 ? 25 : 
-                    state.score.maxCombo >= 25 ? 10 : 0;
-  const accuracyBonus = state.stats.accuracy >= 95 ? 20 : 
-                       state.stats.accuracy >= 85 ? 10 : 0;
+  const baseCoins = Math.floor(state.score.current * 0.01); // 1% of score as coins
+  const comboBonus = state.score.maxCombo >= 100 ? 100 : 
+                    state.score.maxCombo >= 50 ? 50 : 
+                    state.score.maxCombo >= 25 ? 25 : 0;
+  const accuracyBonus = state.stats.accuracy >= 95 ? 50 : 
+                       state.stats.accuracy >= 85 ? 25 : 
+                       state.stats.accuracy >= 75 ? 10 : 0;
   
   return {
     coins: baseCoins,
@@ -400,7 +409,7 @@ export const GameProvider = ({ children }) => {
     }
   }, [state.sessionId, state.gameState, t]);
 
-  // Enhanced keystroke processing with continuous scoring
+  // Enhanced keystroke processing with FIXED progressive scoring
   const processKeystroke = useCallback(async (keystrokeData) => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.sessionId) return;
 
@@ -410,24 +419,29 @@ export const GameProvider = ({ children }) => {
       payload: keystrokeData
     });
 
-    // Calculate points with combo bonus and multiplier
-    const basePoints = keystrokeData.points || 10;
-    const comboMultiplier = Math.floor(state.score.combo / 10) + 1;
-    const totalPoints = basePoints * comboMultiplier * state.score.multiplier;
+    // FIXED: Calculate progressive points based on combo
+    const basePoints = 10; // Base points per key
+    const comboBonus = Math.floor(state.score.combo / 5) * 2; // +2 points per 5 combo
+    const multiplierBonus = (state.score.multiplier - 1) * 5; // +5 points per multiplier level
+    const totalPoints = basePoints + comboBonus + multiplierBonus;
 
-    // Update score immediately
-    dispatch({
-      type: GAME_ACTIONS.UPDATE_SCORE,
-      payload: {
-        current: state.score.current + totalPoints
-      }
-    });
-
-    // Update combo (increment on each key press)
+    // Update combo FIRST (increment on each key press)
     const newCombo = state.score.combo + 1;
     dispatch({
       type: GAME_ACTIONS.UPDATE_COMBO,
       payload: newCombo
+    });
+
+    // Update score with calculated points
+    const newScore = state.score.current + totalPoints;
+    const newTotalKeyPresses = state.score.totalKeyPresses + 1;
+    
+    dispatch({
+      type: GAME_ACTIONS.UPDATE_SCORE,
+      payload: {
+        current: newScore,
+        totalKeyPresses: newTotalKeyPresses
+      }
     });
 
     // Update stats
@@ -453,18 +467,25 @@ export const GameProvider = ({ children }) => {
       payload: newStats
     });
 
-    // Visual feedback for scoring
+    // Enhanced visual feedback with dynamic colors based on combo
     if (typeof window !== 'undefined') {
       const scoreElement = document.createElement('div');
       scoreElement.innerHTML = `+${totalPoints}`;
       scoreElement.className = 'floating-score';
+      
+      // Dynamic color based on combo level
+      let color = '#10b981'; // Green default
+      if (newCombo >= 50) color = '#f59e0b'; // Gold for high combo
+      else if (newCombo >= 25) color = '#8b5cf6'; // Purple for medium combo
+      else if (newCombo >= 10) color = '#3b82f6'; // Blue for low combo
+      
       scoreElement.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        color: ${newCombo >= 50 ? '#f59e0b' : '#10b981'};
-        font-size: ${Math.min(24 + Math.floor(newCombo / 10), 36)}px;
+        color: ${color};
+        font-size: ${Math.min(24 + Math.floor(newCombo / 10) * 2, 40)}px;
         font-weight: bold;
         z-index: 1000;
         pointer-events: none;
@@ -472,18 +493,9 @@ export const GameProvider = ({ children }) => {
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       `;
       
-      // Add animation if not exists
-      if (!document.querySelector('#scoreFloatStyle')) {
-        const style = document.createElement('style');
-        style.id = 'scoreFloatStyle';
-        style.innerHTML = `
-          @keyframes scoreFloat {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 1; transform: translate(-50%, -100%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -150%) scale(1.2); }
-          }
-        `;
-        document.head.appendChild(style);
+      // Add glow effect for high combos
+      if (newCombo >= 25) {
+        scoreElement.style.textShadow = `0 0 10px ${color}, 0 2px 4px rgba(0, 0, 0, 0.5)`;
       }
       
       document.body.appendChild(scoreElement);
@@ -494,22 +506,31 @@ export const GameProvider = ({ children }) => {
       }, 1000);
     }
 
-    // Combo milestone notifications
+    // Enhanced combo milestone notifications with better rewards
     if (newCombo > 0 && newCombo % 25 === 0) {
-      toast.success(`🔥 ${newCombo} Combo! Amazing!`, {
-        duration: 2000,
+      const bonusPoints = newCombo * 2; // Bonus points for milestones
+      dispatch({
+        type: GAME_ACTIONS.UPDATE_SCORE,
+        payload: {
+          current: newScore + bonusPoints
+        }
+      });
+      
+      toast.success(`🔥 ${newCombo} Combo! +${bonusPoints} Bonus Points!`, {
+        duration: 3000,
         style: {
           background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-          color: 'white'
+          color: 'white',
+          fontWeight: 'bold'
         }
       });
     }
 
     return {
-      totalScore: state.score.current + totalPoints,
+      totalScore: newScore,
       points: totalPoints,
       combo: newCombo,
-      multiplier: comboMultiplier
+      multiplier: Math.floor(newCombo / 10) + 1
     };
   }, [state.gameState, state.sessionId, state.score, state.stats, state.startTime]);
 
