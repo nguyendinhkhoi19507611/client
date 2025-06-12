@@ -1,17 +1,13 @@
-// Internationalization context
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
-// Language Context
 const LanguageContext = createContext();
 
-// Language Actions
 const LANGUAGE_ACTIONS = {
   SET_LANGUAGE: 'SET_LANGUAGE',
   SET_TRANSLATIONS: 'SET_TRANSLATIONS',
   SET_LOADING: 'SET_LOADING'
 };
 
-// Initial State
 const initialState = {
   currentLanguage: 'en',
   supportedLanguages: ['en', 'vi'],
@@ -19,7 +15,6 @@ const initialState = {
   isLoading: false
 };
 
-// Language Reducer
 const languageReducer = (state, action) => {
   switch (action.type) {
     case LANGUAGE_ACTIONS.SET_LANGUAGE:
@@ -27,7 +22,6 @@ const languageReducer = (state, action) => {
         ...state,
         currentLanguage: action.payload
       };
-
     case LANGUAGE_ACTIONS.SET_TRANSLATIONS:
       return {
         ...state,
@@ -36,22 +30,19 @@ const languageReducer = (state, action) => {
           [action.payload.language]: action.payload.translations
         }
       };
-
     case LANGUAGE_ACTIONS.SET_LOADING:
       return {
         ...state,
         isLoading: action.payload
       };
-
     default:
       return state;
   }
 };
 
-// Default translations
+// Comprehensive translations
 const defaultTranslations = {
   en: {
-    // Common
     common: {
       loading: 'Loading...',
       error: 'Error',
@@ -67,10 +58,17 @@ const defaultTranslations = {
       sort: 'Sort',
       play: 'Play',
       pause: 'Pause',
-      stop: 'Stop'
+      stop: 'Stop',
+      edit: 'Edit',
+      delete: 'Delete',
+      confirm: 'Confirm',
+      submit: 'Submit',
+      retry: 'Retry',
+      refresh: 'Refresh',
+      view: 'View',
+      download: 'Download',
+      upload: 'Upload'
     },
-    
-    // Navigation
     nav: {
       home: 'Home',
       dashboard: 'Dashboard',
@@ -80,10 +78,13 @@ const defaultTranslations = {
       settings: 'Settings',
       login: 'Login',
       register: 'Sign Up',
-      logout: 'Logout'
+      logout: 'Logout',
+      admin: 'Admin Panel',
+      leaderboard: 'Leaderboard',
+      payments: 'Payments',
+      achievements: 'Achievements',
+      help: 'Help'
     },
-    
-    // Game
     game: {
       title: 'BigCoin Piano',
       subtitle: 'Mine cryptocurrency by playing piano',
@@ -98,10 +99,20 @@ const defaultTranslations = {
       good: 'Good',
       miss: 'Miss',
       gameComplete: 'Game Complete!',
-      playAgain: 'Play Again'
+      playAgain: 'Play Again',
+      claimRewards: 'Claim Rewards',
+      rewardsClaimed: 'Rewards Claimed!',
+      level: 'Level',
+      experience: 'Experience',
+      nextLevel: 'Next Level',
+      settings: 'Game Settings',
+      difficulty: 'Difficulty',
+      speed: 'Speed',
+      volume: 'Volume',
+      effects: 'Visual Effects',
+      soundEffects: 'Sound Effects',
+      autoPlay: 'Auto Play'
     },
-    
-    // Music
     music: {
       library: 'Music Library',
       trending: 'Trending',
@@ -114,25 +125,52 @@ const defaultTranslations = {
       easy: 'Easy',
       medium: 'Medium',
       hard: 'Hard',
-      expert: 'Expert'
+      expert: 'Expert',
+      searchPlaceholder: 'Search songs, artists...',
+      noResults: 'No music found',
+      tryAdjustFilters: 'Try adjusting your search or filters',
+      playCount: 'Plays',
+      averageScore: 'Avg Score',
+      addToFavorites: 'Add to Favorites',
+      removeFromFavorites: 'Remove from Favorites',
+      premiumOnly: 'Premium Only',
+      free: 'Free',
+      genres: {
+        pop: 'Pop',
+        rock: 'Rock',
+        classical: 'Classical',
+        jazz: 'Jazz',
+        electronic: 'Electronic',
+        hiphop: 'Hip-Hop',
+        country: 'Country',
+        folk: 'Folk',
+        blues: 'Blues',
+        reggae: 'Reggae',
+        metal: 'Metal',
+        punk: 'Punk'
+      }
     },
-    
-    // Auth
     auth: {
       username: 'Username',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm Password',
+      fullName: 'Full Name',
       loginTitle: 'Welcome Back',
       registerTitle: 'Join BigCoin Piano',
       forgotPassword: 'Forgot Password?',
       rememberMe: 'Remember Me',
       alreadyHaveAccount: 'Already have an account?',
       dontHaveAccount: "Don't have an account?",
-      createAccount: 'Create Account'
+      createAccount: 'Create Account',
+      signIn: 'Sign In',
+      signUp: 'Sign Up',
+      signInWith: 'Sign in with',
+      signUpWith: 'Sign up with',
+      agreeToTerms: 'I agree to the Terms of Service and Privacy Policy',
+      referralCode: 'Referral Code (Optional)',
+      referralCodeDesc: 'Get 50 bonus BigCoins with a valid referral code!'
     },
-    
-    // Profile
     profile: {
       myProfile: 'My Profile',
       editProfile: 'Edit Profile',
@@ -143,10 +181,23 @@ const defaultTranslations = {
       bestScore: 'Best Score',
       totalPlayTime: 'Total Play Time',
       level: 'Level',
-      experience: 'Experience'
+      experience: 'Experience',
+      accuracy: 'Accuracy',
+      perfectNotes: 'Perfect Notes',
+      currentStreak: 'Current Streak',
+      personalInfo: 'Personal Information',
+      accountSettings: 'Account Settings',
+      preferences: 'Preferences',
+      notifications: 'Notifications',
+      privacy: 'Privacy',
+      security: 'Security',
+      changePassword: 'Change Password',
+      kycStatus: 'KYC Status',
+      verified: 'Verified',
+      pending: 'Pending',
+      notSubmitted: 'Not Submitted',
+      submitKyc: 'Submit KYC'
     },
-    
-    // Wallet & Payment
     wallet: {
       balance: 'Balance',
       withdraw: 'Withdraw',
@@ -156,14 +207,102 @@ const defaultTranslations = {
       pending: 'Pending',
       completed: 'Completed',
       failed: 'Failed',
+      processing: 'Processing',
       bigcoins: 'BigCoins',
       usd: 'USD',
-      vnd: 'VND'
+      vnd: 'VND',
+      sgd: 'SGD',
+      availableBalance: 'Available Balance',
+      pendingBalance: 'Pending Balance',
+      totalEarned: 'Total Earned',
+      totalWithdrawn: 'Total Withdrawn',
+      withdrawalRequest: 'Withdrawal Request',
+      minimumWithdrawal: 'Minimum Withdrawal',
+      withdrawalFee: 'Withdrawal Fee',
+      processingTime: 'Processing Time',
+      bankAccount: 'Bank Account',
+      paymentMethod: 'Payment Method'
+    },
+    dashboard: {
+      welcomeBack: 'Welcome back',
+      readyToEarn: 'Ready to earn some BigCoins?',
+      quickActions: 'Quick Actions',
+      playNow: 'Play Now',
+      withdrawCoins: 'Withdraw Coins',
+      viewLeaderboard: 'Leaderboard',
+      recentGames: 'Recent Games',
+      achievements: 'Achievements',
+      featuredCollections: 'Featured Collections',
+      viewAll: 'View All',
+      todayEarnings: 'Today\'s Earnings',
+      weeklyEarnings: 'Weekly Earnings',
+      gamesPlayed: 'Games Played',
+      nextLevelProgress: 'Progress to Next Level'
+    },
+    admin: {
+      adminPanel: 'Admin Panel',
+      userManagement: 'User Management',
+      musicManagement: 'Music Management',
+      paymentManagement: 'Payment Management',
+      analytics: 'Analytics',
+      systemSettings: 'System Settings',
+      users: 'Users',
+      songs: 'Songs',
+      transactions: 'Transactions',
+      reports: 'Reports',
+      overview: 'Overview',
+      totalUsers: 'Total Users',
+      activeUsers: 'Active Users',
+      totalRevenue: 'Total Revenue',
+      pendingWithdrawals: 'Pending Withdrawals',
+      addUser: 'Add User',
+      editUser: 'Edit User',
+      deleteUser: 'Delete User',
+      banUser: 'Ban User',
+      unbanUser: 'Unban User',
+      viewDetails: 'View Details'
+    },
+    payments: {
+      paymentHistory: 'Payment History',
+      withdrawalHistory: 'Withdrawal History',
+      depositHistory: 'Deposit History',
+      earnedFromGames: 'Earned from Games',
+      bonusRewards: 'Bonus Rewards',
+      referralBonus: 'Referral Bonus',
+      withdrawalMethods: 'Withdrawal Methods',
+      bankTransfer: 'Bank Transfer',
+      digitalWallet: 'Digital Wallet',
+      cryptocurrency: 'Cryptocurrency',
+      feeInformation: 'Fee Information',
+      withdrawalLimits: 'Withdrawal Limits',
+      dailyLimit: 'Daily Limit',
+      monthlyLimit: 'Monthly Limit'
+    },
+    notifications: {
+      achievementUnlocked: 'Achievement Unlocked!',
+      levelUp: 'Level Up!',
+      rewardReceived: 'Reward Received!',
+      withdrawalCompleted: 'Withdrawal Completed',
+      withdrawalPending: 'Withdrawal is being processed',
+      gameCompleted: 'Game Completed',
+      newHighScore: 'New High Score!',
+      comboAchieved: 'Amazing Combo!',
+      perfectScore: 'Perfect Score!'
+    },
+    errors: {
+      networkError: 'Network error occurred',
+      serverError: 'Server error occurred',
+      invalidCredentials: 'Invalid email or password',
+      userExists: 'User already exists',
+      insufficientBalance: 'Insufficient balance',
+      withdrawalFailed: 'Withdrawal failed',
+      gameError: 'Game error occurred',
+      musicLoadError: 'Failed to load music',
+      permissionDenied: 'Permission denied'
     }
   },
   
   vi: {
-    // Common
     common: {
       loading: 'Đang tải...',
       error: 'Lỗi',
@@ -179,10 +318,17 @@ const defaultTranslations = {
       sort: 'Sắp xếp',
       play: 'Chơi',
       pause: 'Tạm dừng',
-      stop: 'Dừng'
+      stop: 'Dừng',
+      edit: 'Chỉnh sửa',
+      delete: 'Xóa',
+      confirm: 'Xác nhận',
+      submit: 'Gửi',
+      retry: 'Thử lại',
+      refresh: 'Làm mới',
+      view: 'Xem',
+      download: 'Tải về',
+      upload: 'Tải lên'
     },
-    
-    // Navigation
     nav: {
       home: 'Trang chủ',
       dashboard: 'Bảng điều khiển',
@@ -192,10 +338,13 @@ const defaultTranslations = {
       settings: 'Cài đặt',
       login: 'Đăng nhập',
       register: 'Đăng ký',
-      logout: 'Đăng xuất'
+      logout: 'Đăng xuất',
+      admin: 'Bảng quản trị',
+      leaderboard: 'Bảng xếp hạng',
+      payments: 'Thanh toán',
+      achievements: 'Thành tích',
+      help: 'Trợ giúp'
     },
-    
-    // Game
     game: {
       title: 'BigCoin Piano',
       subtitle: 'Đào tiền mã hóa bằng cách chơi piano',
@@ -210,10 +359,20 @@ const defaultTranslations = {
       good: 'Tốt',
       miss: 'Trượt',
       gameComplete: 'Hoàn thành!',
-      playAgain: 'Chơi lại'
+      playAgain: 'Chơi lại',
+      claimRewards: 'Nhận thưởng',
+      rewardsClaimed: 'Đã nhận thưởng!',
+      level: 'Cấp độ',
+      experience: 'Kinh nghiệm',
+      nextLevel: 'Cấp độ tiếp theo',
+      settings: 'Cài đặt trò chơi',
+      difficulty: 'Độ khó',
+      speed: 'Tốc độ',
+      volume: 'Âm lượng',
+      effects: 'Hiệu ứng hình ảnh',
+      soundEffects: 'Hiệu ứng âm thanh',
+      autoPlay: 'Tự động chơi'
     },
-    
-    // Music
     music: {
       library: 'Thư viện nhạc',
       trending: 'Thịnh hành',
@@ -226,25 +385,52 @@ const defaultTranslations = {
       easy: 'Dễ',
       medium: 'Trung bình',
       hard: 'Khó',
-      expert: 'Chuyên gia'
+      expert: 'Chuyên gia',
+      searchPlaceholder: 'Tìm bài hát, nghệ sĩ...',
+      noResults: 'Không tìm thấy nhạc',
+      tryAdjustFilters: 'Thử điều chỉnh tìm kiếm hoặc bộ lọc',
+      playCount: 'Lượt chơi',
+      averageScore: 'Điểm TB',
+      addToFavorites: 'Thêm yêu thích',
+      removeFromFavorites: 'Bỏ yêu thích',
+      premiumOnly: 'Chỉ Premium',
+      free: 'Miễn phí',
+      genres: {
+        pop: 'Pop',
+        rock: 'Rock',
+        classical: 'Cổ điển',
+        jazz: 'Jazz',
+        electronic: 'Điện tử',
+        hiphop: 'Hip-Hop',
+        country: 'Country',
+        folk: 'Dân gian',
+        blues: 'Blues',
+        reggae: 'Reggae',
+        metal: 'Metal',
+        punk: 'Punk'
+      }
     },
-    
-    // Auth
     auth: {
       username: 'Tên người dùng',
       email: 'Email',
       password: 'Mật khẩu',
       confirmPassword: 'Xác nhận mật khẩu',
+      fullName: 'Họ và tên',
       loginTitle: 'Chào mừng trở lại',
       registerTitle: 'Tham gia BigCoin Piano',
       forgotPassword: 'Quên mật khẩu?',
       rememberMe: 'Ghi nhớ đăng nhập',
       alreadyHaveAccount: 'Đã có tài khoản?',
       dontHaveAccount: 'Chưa có tài khoản?',
-      createAccount: 'Tạo tài khoản'
+      createAccount: 'Tạo tài khoản',
+      signIn: 'Đăng nhập',
+      signUp: 'Đăng ký',
+      signInWith: 'Đăng nhập với',
+      signUpWith: 'Đăng ký với',
+      agreeToTerms: 'Tôi đồng ý với Điều khoản dịch vụ và Chính sách bảo mật',
+      referralCode: 'Mã giới thiệu (Tùy chọn)',
+      referralCodeDesc: 'Nhận 50 BigCoins thưởng với mã giới thiệu hợp lệ!'
     },
-    
-    // Profile
     profile: {
       myProfile: 'Hồ sơ của tôi',
       editProfile: 'Chỉnh sửa hồ sơ',
@@ -255,10 +441,23 @@ const defaultTranslations = {
       bestScore: 'Điểm cao nhất',
       totalPlayTime: 'Tổng thời gian chơi',
       level: 'Cấp độ',
-      experience: 'Kinh nghiệm'
+      experience: 'Kinh nghiệm',
+      accuracy: 'Độ chính xác',
+      perfectNotes: 'Nốt hoàn hảo',
+      currentStreak: 'Chuỗi hiện tại',
+      personalInfo: 'Thông tin cá nhân',
+      accountSettings: 'Cài đặt tài khoản',
+      preferences: 'Tùy chọn',
+      notifications: 'Thông báo',
+      privacy: 'Riêng tư',
+      security: 'Bảo mật',
+      changePassword: 'Đổi mật khẩu',
+      kycStatus: 'Trạng thái KYC',
+      verified: 'Đã xác minh',
+      pending: 'Đang chờ',
+      notSubmitted: 'Chưa gửi',
+      submitKyc: 'Gửi KYC'
     },
-    
-    // Wallet & Payment
     wallet: {
       balance: 'Số dư',
       withdraw: 'Rút tiền',
@@ -268,178 +467,98 @@ const defaultTranslations = {
       pending: 'Đang chờ',
       completed: 'Hoàn thành',
       failed: 'Thất bại',
+      processing: 'Đang xử lý',
       bigcoins: 'BigCoins',
       usd: 'USD',
-      vnd: 'VND'
+      vnd: 'VND',
+      sgd: 'SGD',
+      availableBalance: 'Số dư khả dụng',
+      pendingBalance: 'Số dư chờ xử lý',
+      totalEarned: 'Tổng thu nhập',
+      totalWithdrawn: 'Tổng đã rút',
+      withdrawalRequest: 'Yêu cầu rút tiền',
+      minimumWithdrawal: 'Rút tối thiểu',
+      withdrawalFee: 'Phí rút tiền',
+      processingTime: 'Thời gian xử lý',
+      bankAccount: 'Tài khoản ngân hàng',
+      paymentMethod: 'Phương thức thanh toán'
+    },
+    dashboard: {
+      welcomeBack: 'Chào mừng trở lại',
+      readyToEarn: 'Sẵn sàng kiếm BigCoins?',
+      quickActions: 'Thao tác nhanh',
+      playNow: 'Chơi ngay',
+      withdrawCoins: 'Rút tiền',
+      viewLeaderboard: 'Bảng xếp hạng',
+      recentGames: 'Trò chơi gần đây',
+      achievements: 'Thành tích',
+      featuredCollections: 'Bộ sưu tập nổi bật',
+      viewAll: 'Xem tất cả',
+      todayEarnings: 'Thu nhập hôm nay',
+      weeklyEarnings: 'Thu nhập tuần',
+      gamesPlayed: 'Trò chơi đã chơi',
+      nextLevelProgress: 'Tiến độ cấp độ tiếp theo'
+    },
+    admin: {
+      adminPanel: 'Bảng quản trị',
+      userManagement: 'Quản lý người dùng',
+      musicManagement: 'Quản lý nhạc',
+      paymentManagement: 'Quản lý thanh toán',
+      analytics: 'Phân tích',
+      systemSettings: 'Cài đặt hệ thống',
+      users: 'Người dùng',
+      songs: 'Bài hát',
+      transactions: 'Giao dịch',
+      reports: 'Báo cáo',
+      overview: 'Tổng quan',
+      totalUsers: 'Tổng người dùng',
+      activeUsers: 'Người dùng hoạt động',
+      totalRevenue: 'Tổng doanh thu',
+      pendingWithdrawals: 'Yêu cầu rút tiền chờ',
+      addUser: 'Thêm người dùng',
+      editUser: 'Sửa người dùng',
+      deleteUser: 'Xóa người dùng',
+      banUser: 'Cấm người dùng',
+      unbanUser: 'Bỏ cấm người dùng',
+      viewDetails: 'Xem chi tiết'
+    },
+    payments: {
+      paymentHistory: 'Lịch sử thanh toán',
+      withdrawalHistory: 'Lịch sử rút tiền',
+      depositHistory: 'Lịch sử nạp tiền',
+      earnedFromGames: 'Thu nhập từ trò chơi',
+      bonusRewards: 'Thưởng bonus',
+      referralBonus: 'Thưởng giới thiệu',
+      withdrawalMethods: 'Phương thức rút tiền',
+      bankTransfer: 'Chuyển khoản ngân hàng',
+      digitalWallet: 'Ví điện tử',
+      cryptocurrency: 'Tiền mã hóa',
+      feeInformation: 'Thông tin phí',
+      withdrawalLimits: 'Giới hạn rút tiền',
+      dailyLimit: 'Giới hạn hàng ngày',
+      monthlyLimit: 'Giới hạn hàng tháng'
+    },
+    notifications: {
+      achievementUnlocked: 'Mở khóa thành tích!',
+      levelUp: 'Thăng cấp!',
+      rewardReceived: 'Nhận thưởng!',
+      withdrawalCompleted: 'Rút tiền hoàn tất',
+      withdrawalPending: 'Đang xử lý yêu cầu rút tiền',
+      gameCompleted: 'Hoàn thành trò chơi',
+      newHighScore: 'Điểm cao mới!',
+      comboAchieved: 'Combo tuyệt vời!',
+      perfectScore: 'Điểm hoàn hảo!'
+    },
+    errors: {
+      networkError: 'Lỗi kết nối mạng',
+      serverError: 'Lỗi máy chủ',
+      invalidCredentials: 'Email hoặc mật khẩu không đúng',
+      userExists: 'Người dùng đã tồn tại',
+      insufficientBalance: 'Số dư không đủ',
+      withdrawalFailed: 'Rút tiền thất bại',
+      gameError: 'Lỗi trò chơi',
+      musicLoadError: 'Không thể tải nhạc',
+      permissionDenied: 'Không có quyền truy cập'
     }
   }
 };
-
-// Language Provider Component
-export const LanguageProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(languageReducer, {
-    ...initialState,
-    translations: defaultTranslations
-  });
-
-  // Load saved language from localStorage
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage && state.supportedLanguages.includes(savedLanguage)) {
-      dispatch({ type: LANGUAGE_ACTIONS.SET_LANGUAGE, payload: savedLanguage });
-    }
-  }, [state.supportedLanguages]);
-
-  // Save language to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('language', state.currentLanguage);
-  }, [state.currentLanguage]);
-
-  // Set language
-  const setLanguage = (language) => {
-    if (state.supportedLanguages.includes(language)) {
-      dispatch({ type: LANGUAGE_ACTIONS.SET_LANGUAGE, payload: language });
-    }
-  };
-
-  // Get translation
-  const t = (key, params = {}) => {
-    const keys = key.split('.');
-    let translation = state.translations[state.currentLanguage];
-    
-    for (const k of keys) {
-      if (translation && typeof translation === 'object') {
-        translation = translation[k];
-      } else {
-        translation = null;
-        break;
-      }
-    }
-    
-    // Fallback to English if translation not found
-    if (!translation && state.currentLanguage !== 'en') {
-      let fallback = state.translations.en;
-      for (const k of keys) {
-        if (fallback && typeof fallback === 'object') {
-          fallback = fallback[k];
-        } else {
-          fallback = null;
-          break;
-        }
-      }
-      translation = fallback;
-    }
-    
-    // Final fallback to key itself
-    if (!translation) {
-      translation = key;
-    }
-    
-    // Replace parameters
-    if (typeof translation === 'string' && Object.keys(params).length > 0) {
-      Object.entries(params).forEach(([param, value]) => {
-        translation = translation.replace(new RegExp(`{{${param}}}`, 'g'), value);
-      });
-    }
-    
-    return translation;
-  };
-
-  // Get language name
-  const getLanguageName = (langCode) => {
-    const languageNames = {
-      en: 'English',
-      vi: 'Tiếng Việt'
-    };
-    return languageNames[langCode] || langCode;
-  };
-
-  // Check if RTL language
-  const isRTL = () => {
-    const rtlLanguages = ['ar', 'he', 'fa'];
-    return rtlLanguages.includes(state.currentLanguage);
-  };
-
-  // Format number based on locale
-  const formatNumber = (number) => {
-    const locales = {
-      en: 'en-US',
-      vi: 'vi-VN'
-    };
-    
-    return new Intl.NumberFormat(locales[state.currentLanguage] || 'en-US').format(number);
-  };
-
-  // Format currency based on locale
-  const formatCurrency = (amount, currency = 'USD') => {
-    const locales = {
-      en: 'en-US',
-      vi: 'vi-VN'
-    };
-    
-    const currencyMap = {
-      USD: 'USD',
-      VND: 'VND',
-      BIGCOIN: null // Custom handling
-    };
-    
-    if (currency === 'BIGCOIN') {
-      return `${formatNumber(amount)} BC`;
-    }
-    
-    return new Intl.NumberFormat(locales[state.currentLanguage] || 'en-US', {
-      style: 'currency',
-      currency: currencyMap[currency] || 'USD'
-    }).format(amount);
-  };
-
-  // Format date based on locale
-  const formatDate = (date, options = {}) => {
-    const locales = {
-      en: 'en-US',
-      vi: 'vi-VN'
-    };
-    
-    return new Intl.DateTimeFormat(locales[state.currentLanguage] || 'en-US', options).format(new Date(date));
-  };
-
-  // Context value
-  const value = {
-    // State
-    ...state,
-    
-    // Actions
-    setLanguage,
-    t,
-    
-    // Utilities
-    getLanguageName,
-    isRTL,
-    formatNumber,
-    formatCurrency,
-    formatDate
-  };
-
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
-};
-
-// Custom Hook
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
-};
-
-// Translation hook
-export const useTranslation = () => {
-  const { t } = useLanguage();
-  return { t };
-};
-
-export default LanguageContext;

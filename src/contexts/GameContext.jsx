@@ -1,7 +1,7 @@
-// Game state management context with mock data
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
+import { useLanguage } from './LanguageContext';
 
 const GameContext = createContext();
 
@@ -41,11 +41,13 @@ const initialState = {
 
   currentMusic: null,
   gameSettings: {
-    difficulty: 'easy',
+    difficulty: 'medium',
     speed: 1.0,
     autoPlay: false,
     soundEnabled: true,
-    visualEffects: true
+    visualEffects: true,
+    showNotes: true,
+    showKeyboard: true
   },
 
   startTime: null,
@@ -98,6 +100,439 @@ const initialState = {
   }
 };
 
+// Enhanced mock music database with comprehensive song collection
+const mockMusicLibrary = [
+  // Classical - Beginner
+  {
+    _id: '1',
+    title: 'Für Elise',
+    artist: 'Beethoven',
+    genre: 'classical',
+    difficulty: { level: 'easy' },
+    duration: 180,
+    bpm: 72,
+    key: 'A minor',
+    statistics: {
+      playCount: 25600,
+      averageScore: 7800,
+      averageAccuracy: 89.2,
+      completionRate: 94.5
+    },
+    availability: { premium: false },
+    trending: true,
+    featured: true,
+    tags: ['beginner', 'romantic', 'classical'],
+    description: 'One of Beethoven\'s most famous piano pieces, perfect for beginners.',
+    sheet: {
+      notes: [
+        { note: 'E5', time: 1000, duration: 500, velocity: 0.8 },
+        { note: 'D#5', time: 1500, duration: 500, velocity: 0.8 },
+        { note: 'E5', time: 2000, duration: 500, velocity: 0.8 },
+        { note: 'D#5', time: 2500, duration: 500, velocity: 0.8 },
+        { note: 'E5', time: 3000, duration: 500, velocity: 0.8 },
+        { note: 'B4', time: 3500, duration: 500, velocity: 0.7 },
+        { note: 'D5', time: 4000, duration: 500, velocity: 0.7 },
+        { note: 'C5', time: 4500, duration: 500, velocity: 0.7 },
+        { note: 'A4', time: 5000, duration: 1000, velocity: 0.6 }
+      ]
+    }
+  },
+  {
+    _id: '2',
+    title: 'Canon in D',
+    artist: 'Pachelbel',
+    genre: 'classical',
+    difficulty: { level: 'medium' },
+    duration: 240,
+    bpm: 50,
+    key: 'D major',
+    statistics: {
+      playCount: 18900,
+      averageScore: 9200,
+      averageAccuracy: 82.7,
+      completionRate: 87.3
+    },
+    availability: { premium: false },
+    featured: true,
+    tags: ['wedding', 'baroque', 'peaceful'],
+    description: 'A beautiful baroque masterpiece, often played at weddings.'
+  },
+  {
+    _id: '3',
+    title: 'Moonlight Sonata (1st Movement)',
+    artist: 'Beethoven',
+    genre: 'classical',
+    difficulty: { level: 'hard' },
+    duration: 300,
+    bpm: 54,
+    key: 'C# minor',
+    statistics: {
+      playCount: 12400,
+      averageScore: 11500,
+      averageAccuracy: 75.1,
+      completionRate: 68.2
+    },
+    availability: { premium: true },
+    tags: ['dramatic', 'romantic', 'advanced'],
+    description: 'The haunting first movement of Beethoven\'s famous sonata.'
+  },
+
+  // Pop - Modern Hits
+  {
+    _id: '4',
+    title: 'Shape of You',
+    artist: 'Ed Sheeran',
+    genre: 'pop',
+    difficulty: { level: 'easy' },
+    duration: 233,
+    bpm: 96,
+    key: 'C# minor',
+    statistics: {
+      playCount: 45600,
+      averageScore: 6800,
+      averageAccuracy: 91.8,
+      completionRate: 96.1
+    },
+    availability: { premium: false },
+    trending: true,
+    tags: ['modern', 'catchy', 'popular'],
+    description: 'Ed Sheeran\'s chart-topping hit, simplified for piano.'
+  },
+  {
+    _id: '5',
+    title: 'Someone Like You',
+    artist: 'Adele',
+    genre: 'pop',
+    difficulty: { level: 'medium' },
+    duration: 285,
+    bpm: 67,
+    key: 'A major',
+    statistics: {
+      playCount: 38200,
+      averageScore: 8400,
+      averageAccuracy: 86.4,
+      completionRate: 89.7
+    },
+    availability: { premium: false },
+    featured: true,
+    tags: ['emotional', 'ballad', 'powerful'],
+    description: 'Adele\'s emotional ballad arranged for solo piano.'
+  },
+  {
+    _id: '6',
+    title: 'All of Me',
+    artist: 'John Legend',
+    genre: 'pop',
+    difficulty: { level: 'medium' },
+    duration: 269,
+    bpm: 120,
+    key: 'Ab major',
+    statistics: {
+      playCount: 32800,
+      averageScore: 7900,
+      averageAccuracy: 88.1,
+      completionRate: 91.3
+    },
+    availability: { premium: false },
+    tags: ['romantic', 'wedding', 'soulful'],
+    description: 'John Legend\'s romantic hit, perfect for special occasions.'
+  },
+
+  // Rock Classics
+  {
+    _id: '7',
+    title: 'Bohemian Rhapsody',
+    artist: 'Queen',
+    genre: 'rock',
+    difficulty: { level: 'expert' },
+    duration: 355,
+    bpm: 72,
+    key: 'Bb major',
+    statistics: {
+      playCount: 21500,
+      averageScore: 14200,
+      averageAccuracy: 69.8,
+      completionRate: 45.2
+    },
+    availability: { premium: true },
+    trending: true,
+    featured: true,
+    tags: ['epic', 'complex', 'legendary'],
+    description: 'Queen\'s masterpiece - a challenging piano arrangement.'
+  },
+  {
+    _id: '8',
+    title: 'Hotel California',
+    artist: 'Eagles',
+    genre: 'rock',
+    difficulty: { level: 'hard' },
+    duration: 391,
+    bpm: 150,
+    key: 'B minor',
+    statistics: {
+      playCount: 19300,
+      averageScore: 10800,
+      averageAccuracy: 76.9,
+      completionRate: 72.4
+    },
+    availability: { premium: true },
+    tags: ['classic', 'story', 'iconic'],
+    description: 'The Eagles\' timeless classic, arranged for piano.'
+  },
+  {
+    _id: '9',
+    title: 'Imagine',
+    artist: 'John Lennon',
+    genre: 'rock',
+    difficulty: { level: 'easy' },
+    duration: 183,
+    bpm: 76,
+    key: 'C major',
+    statistics: {
+      playCount: 41200,
+      averageScore: 7200,
+      averageAccuracy: 93.1,
+      completionRate: 97.8
+    },
+    availability: { premium: false },
+    trending: true,
+    tags: ['peaceful', 'inspiring', 'simple'],
+    description: 'John Lennon\'s message of peace in a beautiful piano arrangement.'
+  },
+
+  // Jazz Standards
+  {
+    _id: '10',
+    title: 'Autumn Leaves',
+    artist: 'Traditional Jazz',
+    genre: 'jazz',
+    difficulty: { level: 'medium' },
+    duration: 245,
+    bpm: 120,
+    key: 'Bb major',
+    statistics: {
+      playCount: 15600,
+      averageScore: 8900,
+      averageAccuracy: 81.4,
+      completionRate: 83.7
+    },
+    availability: { premium: false },
+    tags: ['standard', 'swing', 'sophisticated'],
+    description: 'A jazz standard perfect for intermediate players.'
+  },
+  {
+    _id: '11',
+    title: 'Fly Me to the Moon',
+    artist: 'Frank Sinatra',
+    genre: 'jazz',
+    difficulty: { level: 'medium' },
+    duration: 148,
+    bpm: 120,
+    key: 'C major',
+    statistics: {
+      playCount: 18700,
+      averageScore: 8200,
+      averageAccuracy: 84.6,
+      completionRate: 88.9
+    },
+    availability: { premium: false },
+    tags: ['swing', 'romantic', 'timeless'],
+    description: 'Sinatra\'s classic, arranged for solo piano.'
+  },
+
+  // Movie Themes
+  {
+    _id: '12',
+    title: 'River Flows in You',
+    artist: 'Yiruma',
+    genre: 'contemporary',
+    difficulty: { level: 'medium' },
+    duration: 207,
+    bpm: 60,
+    key: 'A major',
+    statistics: {
+      playCount: 29400,
+      averageScore: 8600,
+      averageAccuracy: 87.2,
+      completionRate: 90.5
+    },
+    availability: { premium: false },
+    featured: true,
+    tags: ['peaceful', 'flowing', 'modern'],
+    description: 'Yiruma\'s beautiful contemporary piece.'
+  },
+  {
+    _id: '13',
+    title: 'Pirates of the Caribbean Theme',
+    artist: 'Hans Zimmer',
+    genre: 'movie',
+    difficulty: { level: 'hard' },
+    duration: 198,
+    bpm: 168,
+    key: 'D minor',
+    statistics: {
+      playCount: 22100,
+      averageScore: 10200,
+      averageAccuracy: 78.3,
+      completionRate: 74.1
+    },
+    availability: { premium: true },
+    trending: true,
+    tags: ['epic', 'adventure', 'orchestral'],
+    description: 'The epic theme from Pirates of the Caribbean.'
+  },
+
+  // Classical Advanced
+  {
+    _id: '14',
+    title: 'Chopin Nocturne Op.9 No.2',
+    artist: 'Chopin',
+    genre: 'classical',
+    difficulty: { level: 'expert' },
+    duration: 270,
+    bpm: 120,
+    key: 'Eb major',
+    statistics: {
+      playCount: 8900,
+      averageScore: 13800,
+      averageAccuracy: 71.6,
+      completionRate: 52.3
+    },
+    availability: { premium: true },
+    featured: true,
+    tags: ['romantic', 'expressive', 'technical'],
+    description: 'One of Chopin\'s most beautiful nocturnes.'
+  },
+  {
+    _id: '15',
+    title: 'Turkish March',
+    artist: 'Mozart',
+    genre: 'classical',
+    difficulty: { level: 'hard' },
+    duration: 210,
+    bpm: 120,
+    key: 'A major',
+    statistics: {
+      playCount: 16200,
+      averageScore: 11400,
+      averageAccuracy: 77.8,
+      completionRate: 69.4
+    },
+    availability: { premium: true },
+    tags: ['energetic', 'classical', 'technical'],
+    description: 'Mozart\'s famous and energetic Turkish March.'
+  },
+
+  // Electronic/Modern
+  {
+    _id: '16',
+    title: 'Comptine d\'un autre été',
+    artist: 'Yann Tiersen',
+    genre: 'contemporary',
+    difficulty: { level: 'medium' },
+    duration: 143,
+    bpm: 120,
+    key: 'G minor',
+    statistics: {
+      playCount: 24800,
+      averageScore: 8800,
+      averageAccuracy: 85.7,
+      completionRate: 89.2
+    },
+    availability: { premium: false },
+    featured: true,
+    tags: ['melancholic', 'beautiful', 'french'],
+    description: 'Beautiful piece from the movie Amélie.'
+  },
+
+  // Christmas/Holiday
+  {
+    _id: '17',
+    title: 'Silent Night',
+    artist: 'Traditional',
+    genre: 'holiday',
+    difficulty: { level: 'easy' },
+    duration: 145,
+    bpm: 60,
+    key: 'C major',
+    statistics: {
+      playCount: 35600,
+      averageScore: 6900,
+      averageAccuracy: 94.2,
+      completionRate: 98.1
+    },
+    availability: { premium: false },
+    tags: ['christmas', 'peaceful', 'traditional'],
+    description: 'The beloved Christmas carol arranged for piano.'
+  },
+
+  // Video Game Music
+  {
+    _id: '18',
+    title: 'Sweden (Minecraft Theme)',
+    artist: 'C418',
+    genre: 'game',
+    difficulty: { level: 'easy' },
+    duration: 213,
+    bpm: 120,
+    key: 'F major',
+    statistics: {
+      playCount: 28900,
+      averageScore: 7400,
+      averageAccuracy: 92.3,
+      completionRate: 95.7
+    },
+    availability: { premium: false },
+    trending: true,
+    tags: ['gaming', 'nostalgic', 'peaceful'],
+    description: 'The iconic Minecraft theme that brings back memories.'
+  },
+
+  // Asian Pop
+  {
+    _id: '19',
+    title: 'Spring Day',
+    artist: 'BTS',
+    genre: 'kpop',
+    difficulty: { level: 'medium' },
+    duration: 236,
+    bpm: 70,
+    key: 'F major',
+    statistics: {
+      playCount: 31200,
+      averageScore: 8100,
+      averageAccuracy: 86.8,
+      completionRate: 88.4
+    },
+    availability: { premium: true },
+    trending: true,
+    tags: ['kpop', 'emotional', 'popular'],
+    description: 'BTS\'s emotional hit arranged for piano.'
+  },
+
+  // Lo-fi/Chill
+  {
+    _id: '20',
+    title: 'Lofi Hip Hop Study Mix',
+    artist: 'Various Artists',
+    genre: 'lofi',
+    difficulty: { level: 'easy' },
+    duration: 189,
+    bpm: 85,
+    key: 'Am',
+    statistics: {
+      playCount: 42100,
+      averageScore: 6700,
+      averageAccuracy: 93.8,
+      completionRate: 96.9
+    },
+    availability: { premium: false },
+    trending: true,
+    tags: ['chill', 'study', 'relaxing'],
+    description: 'Relaxing lo-fi beats perfect for studying or chilling.'
+  }
+];
+
 const gameReducer = (state, action) => {
   switch (action.type) {
     case GAME_ACTIONS.SET_STATE:
@@ -131,7 +566,10 @@ const gameReducer = (state, action) => {
         startTime: new Date(),
         currentTime: 0,
         progress: 0,
-        score: { ...initialState.score, multiplier: state.gameSettings.difficulty === 'expert' ? 2.0 : 1.0 },
+        score: { 
+          ...initialState.score, 
+          multiplier: getDifficultyMultiplier(state.gameSettings.difficulty)
+        },
         stats: initialState.stats,
         keystrokes: [],
         achievements: [],
@@ -206,12 +644,7 @@ const gameReducer = (state, action) => {
       };
 
     case GAME_ACTIONS.END_GAME:
-      const finalRewards = {
-        coins: Math.floor(state.score.current * 0.01), // 1 coin per 100 points
-        experience: Math.floor(state.score.current * 0.1),
-        bonusCoins: state.score.maxCombo >= 50 ? 10 : 0,
-        claimed: false
-      };
+      const finalRewards = calculateRewards(state);
 
       return {
         ...state,
@@ -257,87 +690,45 @@ const gameReducer = (state, action) => {
         recentAchievements: [...state.recentAchievements, action.payload]
       };
 
-    case GAME_ACTIONS.UPDATE_MULTIPLIERS:
-      return {
-        ...state,
-        score: {
-          ...state.score,
-          multiplier: action.payload
-        }
-      };
-
     default:
       return state;
   }
 };
 
-// Mock music database
-const mockMusic = [
-  {
-    _id: '1',
-    title: 'Für Elise',
-    artist: 'Beethoven',
-    genre: 'classical',
-    difficulty: { level: 'medium' },
-    duration: 180,
-    statistics: {
-      playCount: 12500,
-      averageScore: 8500,
-      averageAccuracy: 85.2
-    },
-    availability: { premium: false },
-    sheet: {
-      notes: [
-        { note: 'E5', time: 1000, duration: 500 },
-        { note: 'D#5', time: 1500, duration: 500 },
-        { note: 'E5', time: 2000, duration: 500 },
-        { note: 'D#5', time: 2500, duration: 500 },
-        { note: 'E5', time: 3000, duration: 500 },
-        { note: 'B4', time: 3500, duration: 500 },
-        { note: 'D5', time: 4000, duration: 500 },
-        { note: 'C5', time: 4500, duration: 500 },
-        { note: 'A4', time: 5000, duration: 1000 }
-      ]
-    }
-  },
-  {
-    _id: '2',
-    title: 'Canon in D',
-    artist: 'Pachelbel',
-    genre: 'classical',
-    difficulty: { level: 'hard' },
-    duration: 240,
-    statistics: {
-      playCount: 8200,
-      averageScore: 9200,
-      averageAccuracy: 78.9
-    },
-    availability: { premium: false }
-  },
-  {
-    _id: '3',
-    title: 'Moonlight Sonata',
-    artist: 'Beethoven',
-    genre: 'classical',
-    difficulty: { level: 'expert' },
-    duration: 300,
-    statistics: {
-      playCount: 5600,
-      averageScore: 12000,
-      averageAccuracy: 72.1
-    },
-    availability: { premium: true }
-  }
-];
+// Helper functions
+const getDifficultyMultiplier = (difficulty) => {
+  const multipliers = {
+    easy: 1.0,
+    medium: 1.2,
+    hard: 1.5,
+    expert: 2.0
+  };
+  return multipliers[difficulty] || 1.0;
+};
+
+const calculateRewards = (state) => {
+  const baseCoins = Math.floor(state.score.current * 0.01);
+  const accuracyBonus = state.stats.accuracy >= 90 ? Math.floor(baseCoins * 0.2) : 0;
+  const comboBonus = state.score.maxCombo >= 50 ? 20 : state.score.maxCombo >= 25 ? 10 : 0;
+  const difficultyBonus = getDifficultyMultiplier(state.currentMusic?.difficulty?.level || 'easy') - 1;
+  
+  return {
+    coins: baseCoins,
+    experience: Math.floor(state.score.current * 0.1),
+    bonusCoins: accuracyBonus + comboBonus + Math.floor(baseCoins * difficultyBonus),
+    claimed: false
+  };
+};
 
 export const GameProvider = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const { user, updateProfile } = useAuth();
+  const { t } = useLanguage();
 
-  // Mock start game function
+  // Start game function
   const startGame = useCallback(async (musicId, settings = {}) => {
     if (!user) {
-      toast.error('Please login to play');
+      toast.error(t('errors.permissionDenied'));
       return;
     }
 
@@ -362,37 +753,39 @@ export const GameProvider = ({ children }) => {
       payload: { sessionId }
     });
 
-    toast.success('Game started!');
-  }, [user, state.gameSettings]);
+    toast.success(t('game.startGame'));
+  }, [user, state.gameSettings, t]);
 
   const pauseGame = useCallback(() => {
     if (state.gameState === GAME_STATES.PLAYING) {
       dispatch({ type: GAME_ACTIONS.PAUSE_GAME });
+      toast.info(t('game.pauseGame'));
     }
-  }, [state.gameState]);
+  }, [state.gameState, t]);
 
   const resumeGame = useCallback(() => {
     if (state.gameState === GAME_STATES.PAUSED) {
       dispatch({ type: GAME_ACTIONS.RESUME_GAME });
+      toast.success(t('game.resumeGame'));
     }
-  }, [state.gameState]);
+  }, [state.gameState, t]);
 
   const endGame = useCallback(async () => {
     if (state.sessionId && state.gameState === GAME_STATES.PLAYING) {
-      // Simulate ending delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
       dispatch({
         type: GAME_ACTIONS.END_GAME,
         payload: { achievements: [] }
       });
+
+      toast.success(t('game.gameComplete'));
     }
-  }, [state.sessionId, state.gameState]);
+  }, [state.sessionId, state.gameState, t]);
 
   const processKeystroke = useCallback(async (keystrokeData) => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.sessionId) return;
 
-    // Add keystroke locally for immediate feedback
     dispatch({
       type: GAME_ACTIONS.ADD_KEYSTROKE,
       payload: keystrokeData
@@ -406,7 +799,6 @@ export const GameProvider = ({ children }) => {
       points = 50 * state.score.multiplier;
     }
 
-    // Update score
     dispatch({
       type: GAME_ACTIONS.UPDATE_SCORE,
       payload: {
@@ -430,10 +822,8 @@ export const GameProvider = ({ children }) => {
 
   const claimRewards = useCallback(async () => {
     if (state.sessionId && state.gameState === GAME_STATES.COMPLETED && !state.rewards.claimed) {
-      // Simulate claiming delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Update user coins
       const currentCoins = user?.coins?.available || 0;
       const totalReward = state.rewards.coins + state.rewards.bonusCoins;
       
@@ -441,13 +831,16 @@ export const GameProvider = ({ children }) => {
         coins: {
           ...user.coins,
           available: currentCoins + totalReward,
-          total: (user.coins?.total || 0) + totalReward
+          total: (user.coins?.total || 0) + totalReward,
+          earned: (user.coins?.earned || 0) + totalReward
         },
         statistics: {
           ...user.statistics,
           totalGames: (user.statistics?.totalGames || 0) + 1,
           bestScore: Math.max(user.statistics?.bestScore || 0, state.score.current),
-          experience: (user.statistics?.experience || 0) + state.rewards.experience
+          experience: (user.statistics?.experience || 0) + state.rewards.experience,
+          accuracy: ((user.statistics?.accuracy || 0) + state.stats.accuracy) / 2,
+          perfectNotes: (user.statistics?.perfectNotes || 0) + state.stats.perfectHits
         }
       });
 
@@ -460,7 +853,7 @@ export const GameProvider = ({ children }) => {
         }
       };
     }
-  }, [state.sessionId, state.gameState, state.rewards, user, updateProfile]);
+  }, [state.sessionId, state.gameState, state.rewards, state.score.current, state.stats, user, updateProfile]);
 
   const resetGame = useCallback(() => {
     dispatch({ type: GAME_ACTIONS.RESET_GAME });
@@ -496,7 +889,6 @@ export const GameProvider = ({ children }) => {
       const currentTime = (Date.now() - state.startTime.getTime()) / 1000;
       updateProgress(currentTime, state.duration);
       
-      // Auto-end game when duration reached
       if (state.duration > 0 && currentTime >= state.duration) {
         endGame();
       }
@@ -527,18 +919,20 @@ export const GameProvider = ({ children }) => {
     };
   }, [state.progress, state.currentTime, state.duration]);
 
-  // Mock functions to get music data
+  // Music library functions
   const getMusicById = useCallback((id) => {
-    return mockMusic.find(m => m._id === id) || null;
+    return mockMusicLibrary.find(m => m._id === id) || null;
   }, []);
 
   const searchMusic = useCallback((params) => {
-    let results = [...mockMusic];
+    let results = [...mockMusicLibrary];
     
     if (params.q) {
       results = results.filter(m => 
         m.title.toLowerCase().includes(params.q.toLowerCase()) ||
-        m.artist.toLowerCase().includes(params.q.toLowerCase())
+        m.artist.toLowerCase().includes(params.q.toLowerCase()) ||
+        m.genre.toLowerCase().includes(params.q.toLowerCase()) ||
+        m.tags?.some(tag => tag.toLowerCase().includes(params.q.toLowerCase()))
       );
     }
     
@@ -549,8 +943,50 @@ export const GameProvider = ({ children }) => {
     if (params.difficulties && params.difficulties.length > 0) {
       results = results.filter(m => params.difficulties.includes(m.difficulty.level));
     }
+
+    if (params.premium !== undefined) {
+      results = results.filter(m => m.availability.premium === params.premium);
+    }
+
+    if (params.trending) {
+      results = results.filter(m => m.trending);
+    }
+
+    if (params.featured) {
+      results = results.filter(m => m.featured);
+    }
     
     return { music: results, total: results.length };
+  }, []);
+
+  const getFeaturedMusic = useCallback(() => {
+    return mockMusicLibrary.filter(m => m.featured);
+  }, []);
+
+  const getTrendingMusic = useCallback(() => {
+    return mockMusicLibrary.filter(m => m.trending);
+  }, []);
+
+  const getMusicByGenre = useCallback((genre) => {
+    return mockMusicLibrary.filter(m => m.genre === genre);
+  }, []);
+
+  const getMusicByDifficulty = useCallback((difficulty) => {
+    return mockMusicLibrary.filter(m => m.difficulty.level === difficulty);
+  }, []);
+
+  const getRecommendedMusic = useCallback((userLevel = 1) => {
+    // Recommend music based on user level
+    let recommendedDifficulty;
+    if (userLevel < 5) recommendedDifficulty = 'easy';
+    else if (userLevel < 15) recommendedDifficulty = 'medium';
+    else if (userLevel < 25) recommendedDifficulty = 'hard';
+    else recommendedDifficulty = 'expert';
+
+    return mockMusicLibrary
+      .filter(m => m.difficulty.level === recommendedDifficulty)
+      .sort((a, b) => b.statistics.playCount - a.statistics.playCount)
+      .slice(0, 10);
   }, []);
 
   const value = {
@@ -571,7 +1007,12 @@ export const GameProvider = ({ children }) => {
     getGameProgress,
     getMusicById,
     searchMusic,
-    mockMusic,
+    getFeaturedMusic,
+    getTrendingMusic,
+    getMusicByGenre,
+    getMusicByDifficulty,
+    getRecommendedMusic,
+    mockMusic: mockMusicLibrary,
     isStarting: false,
     isEnding: false,
     isClaiming: false

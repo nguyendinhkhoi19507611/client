@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -24,6 +25,8 @@ const RegisterPage = React.lazy(() => import('./pages/Auth/RegisterPage'));
 const GamePage = React.lazy(() => import('./pages/Game/GamePage'));
 const MusicLibraryPage = React.lazy(() => import('./pages/Music/MusicLibraryPage'));
 const DashboardPage = React.lazy(() => import('./pages/Dashboard/DashboardPage'));
+const PaymentPage = React.lazy(() => import('./pages/Payment/PaymentPage'));
+const AdminPanelPage = React.lazy(() => import('./pages/Admin/AdminPanelPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFound/NotFoundPage'));
 
 // Protected Route Component
@@ -84,6 +87,21 @@ function App() {
                                 </ProtectedRoute>
                               } />
                               
+                              <Route path="payment" element={
+                                <ProtectedRoute>
+                                  <PaymentPage />
+                                </ProtectedRoute>
+                              } />
+                              
+                              {/* Admin Only Routes */}
+                              <Route path="admin" element={
+                                <ProtectedRoute>
+                                  <AdminRoute>
+                                    <AdminPanelPage />
+                                  </AdminRoute>
+                                </ProtectedRoute>
+                              } />
+                              
                               {/* Redirects */}
                               <Route path="music/:id" element={<Navigate to="/game" replace />} />
                               <Route path="404" element={<NotFoundPage />} />
@@ -139,6 +157,17 @@ function App() {
     </ErrorBoundary>
   );
 }
+
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { user } = React.useContext(AuthProvider);
+  
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
 
 // App Loading Screen Component
 const AppLoadingScreen = () => (
