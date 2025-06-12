@@ -1,3 +1,4 @@
+// src/contexts/GameContext.jsx - Updated with continuous scoring
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -28,7 +29,8 @@ const GAME_ACTIONS = {
   RESET_GAME: 'RESET_GAME',
   SET_ERROR: 'SET_ERROR',
   UPDATE_PROGRESS: 'UPDATE_PROGRESS',
-  CLAIM_REWARDS: 'CLAIM_REWARDS'
+  CLAIM_REWARDS: 'CLAIM_REWARDS',
+  UPDATE_STATS: 'UPDATE_STATS'
 };
 
 const initialState = {
@@ -53,12 +55,17 @@ const initialState = {
   score: {
     current: 0,
     combo: 0,
-    maxCombo: 0
+    maxCombo: 0,
+    multiplier: 1
   },
 
   stats: {
     totalKeys: 0,
-    keysPerMinute: 0
+    keysPerMinute: 0,
+    accuracy: 100,
+    perfectHits: 0,
+    goodHits: 0,
+    missedHits: 0
   },
 
   keystrokes: [],
@@ -67,11 +74,12 @@ const initialState = {
   rewards: {
     coins: 0,
     experience: 0,
+    bonusCoins: 0,
     claimed: false
   }
 };
 
-// Simplified mock music database - no difficulty levels
+// Enhanced mock music database
 const mockMusicLibrary = [
   {
     _id: '1',
@@ -176,30 +184,6 @@ const mockMusicLibrary = [
     },
     trending: true,
     tags: ['pop', 'peace']
-  },
-  {
-    _id: '9',
-    title: 'Let It Be',
-    artist: 'The Beatles',
-    genre: 'pop',
-    duration: 243,
-    statistics: {
-      playCount: 28700,
-      averageScore: 6800
-    },
-    tags: ['pop', 'classic']
-  },
-  {
-    _id: '10',
-    title: 'All of Me',
-    artist: 'John Legend',
-    genre: 'pop',
-    duration: 269,
-    statistics: {
-      playCount: 22400,
-      averageScore: 7600
-    },
-    tags: ['pop', 'romantic']
   }
 ];
 
@@ -236,9 +220,10 @@ const gameReducer = (state, action) => {
         startTime: new Date(),
         currentTime: 0,
         progress: 0,
-        score: initialState.score,
-        stats: initialState.stats,
+        score: { ...initialState.score },
+        stats: { ...initialState.stats },
         keystrokes: [],
+        recentKeystrokes: [],
         rewards: { ...initialState.rewards }
       };
 
@@ -256,23 +241,19 @@ const gameReducer = (state, action) => {
       const newKeystrokes = [...state.keystrokes, keystroke];
       const recentKeystrokes = [...state.recentKeystrokes, keystroke].slice(-10);
       
-      // Simple scoring - just count keys and add points
-      const updatedStats = {
-        ...state.stats,
-        totalKeys: state.stats.totalKeys + 1
-      };
-      
-      // Calculate keys per minute
-      if (state.startTime) {
-        const timeElapsed = (Date.now() - state.startTime.getTime()) / 1000 / 60; // in minutes
-        updatedStats.keysPerMinute = Math.round(updatedStats.totalKeys / Math.max(timeElapsed, 0.1));
-      }
-      
       return {
         ...state,
         keystrokes: newKeystrokes,
-        recentKeystrokes,
-        stats: updatedStats
+        recentKeystrokes
+      };
+
+    case GAME_ACTIONS.UPDATE_STATS:
+      return {
+        ...state,
+        stats: {
+          ...state.stats,
+          ...action.payload
+        }
       };
 
     case GAME_ACTIONS.UPDATE_COMBO:
@@ -281,7 +262,8 @@ const gameReducer = (state, action) => {
         score: {
           ...state.score,
           combo: action.payload,
-          maxCombo: Math.max(state.score.maxCombo, action.payload)
+          maxCombo: Math.max(state.score.maxCombo, action.payload),
+          multiplier: Math.floor(action.payload / 10) + 1 // Increase multiplier every 10 combo
         }
       };
 
@@ -299,7 +281,6 @@ const gameReducer = (state, action) => {
 
     case GAME_ACTIONS.END_GAME:
       const finalRewards = calculateRewards(state);
-
       return {
         ...state,
         gameState: GAME_STATES.COMPLETED,
@@ -341,15 +322,19 @@ const gameReducer = (state, action) => {
   }
 };
 
-// Helper function to calculate rewards
+// Enhanced reward calculation
 const calculateRewards = (state) => {
   const baseCoins = Math.floor(state.score.current * 0.01);
-  const comboBonus = state.score.maxCombo >= 50 ? 20 : state.score.maxCombo >= 25 ? 10 : 0;
+  const comboBonus = state.score.maxCombo >= 100 ? 50 : 
+                    state.score.maxCombo >= 50 ? 25 : 
+                    state.score.maxCombo >= 25 ? 10 : 0;
+  const accuracyBonus = state.stats.accuracy >= 95 ? 20 : 
+                       state.stats.accuracy >= 85 ? 10 : 0;
   
   return {
     coins: baseCoins,
     experience: Math.floor(state.score.current * 0.1),
-    bonusCoins: comboBonus,
+    bonusCoins: comboBonus + accuracyBonus,
     claimed: false
   };
 };
@@ -367,8 +352,6 @@ export const GameProvider = ({ children }) => {
     }
 
     dispatch({ type: GAME_ACTIONS.SET_STATE, payload: GAME_STATES.LOADING });
-
-    // Simulate loading delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const gameSettings = {
@@ -417,37 +400,118 @@ export const GameProvider = ({ children }) => {
     }
   }, [state.sessionId, state.gameState, t]);
 
+  // Enhanced keystroke processing with continuous scoring
   const processKeystroke = useCallback(async (keystrokeData) => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.sessionId) return;
 
+    // Add keystroke to history
     dispatch({
       type: GAME_ACTIONS.ADD_KEYSTROKE,
       payload: keystrokeData
     });
 
-    // Simple scoring - every key press gives points
-    const points = keystrokeData.points || 10;
+    // Calculate points with combo bonus and multiplier
+    const basePoints = keystrokeData.points || 10;
+    const comboMultiplier = Math.floor(state.score.combo / 10) + 1;
+    const totalPoints = basePoints * comboMultiplier * state.score.multiplier;
 
+    // Update score immediately
     dispatch({
       type: GAME_ACTIONS.UPDATE_SCORE,
       payload: {
-        current: state.score.current + points
+        current: state.score.current + totalPoints
       }
     });
 
-    // Update combo (just count consecutive key presses)
+    // Update combo (increment on each key press)
     const newCombo = state.score.combo + 1;
     dispatch({
       type: GAME_ACTIONS.UPDATE_COMBO,
       payload: newCombo
     });
 
-    return {
-      totalScore: state.score.current + points,
-      points,
-      combo: newCombo
+    // Update stats
+    const newStats = {
+      totalKeys: state.stats.totalKeys + 1,
+      perfectHits: state.stats.perfectHits + (keystrokeData.accuracy === 'perfect' ? 1 : 0),
+      goodHits: state.stats.goodHits + (keystrokeData.accuracy === 'good' ? 1 : 0)
     };
-  }, [state.gameState, state.sessionId, state.score]);
+
+    // Calculate keys per minute
+    if (state.startTime) {
+      const timeElapsed = (Date.now() - state.startTime.getTime()) / 1000 / 60;
+      newStats.keysPerMinute = Math.round(newStats.totalKeys / Math.max(timeElapsed, 0.1));
+    }
+
+    // Calculate accuracy
+    const totalHits = newStats.perfectHits + newStats.goodHits + newStats.missedHits;
+    newStats.accuracy = totalHits > 0 ? 
+      Math.round(((newStats.perfectHits + newStats.goodHits) / totalHits) * 100) : 100;
+
+    dispatch({
+      type: GAME_ACTIONS.UPDATE_STATS,
+      payload: newStats
+    });
+
+    // Visual feedback for scoring
+    if (typeof window !== 'undefined') {
+      const scoreElement = document.createElement('div');
+      scoreElement.innerHTML = `+${totalPoints}`;
+      scoreElement.className = 'floating-score';
+      scoreElement.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: ${newCombo >= 50 ? '#f59e0b' : '#10b981'};
+        font-size: ${Math.min(24 + Math.floor(newCombo / 10), 36)}px;
+        font-weight: bold;
+        z-index: 1000;
+        pointer-events: none;
+        animation: scoreFloat 1s ease-out forwards;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      `;
+      
+      // Add animation if not exists
+      if (!document.querySelector('#scoreFloatStyle')) {
+        const style = document.createElement('style');
+        style.id = 'scoreFloatStyle';
+        style.innerHTML = `
+          @keyframes scoreFloat {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -100%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -150%) scale(1.2); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      document.body.appendChild(scoreElement);
+      setTimeout(() => {
+        if (scoreElement.parentNode) {
+          scoreElement.remove();
+        }
+      }, 1000);
+    }
+
+    // Combo milestone notifications
+    if (newCombo > 0 && newCombo % 25 === 0) {
+      toast.success(`🔥 ${newCombo} Combo! Amazing!`, {
+        duration: 2000,
+        style: {
+          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          color: 'white'
+        }
+      });
+    }
+
+    return {
+      totalScore: state.score.current + totalPoints,
+      points: totalPoints,
+      combo: newCombo,
+      multiplier: comboMultiplier
+    };
+  }, [state.gameState, state.sessionId, state.score, state.stats, state.startTime]);
 
   const claimRewards = useCallback(async () => {
     if (state.sessionId && state.gameState === GAME_STATES.COMPLETED && !state.rewards.claimed) {
@@ -467,7 +531,8 @@ export const GameProvider = ({ children }) => {
           ...user.statistics,
           totalGames: (user.statistics?.totalGames || 0) + 1,
           bestScore: Math.max(user.statistics?.bestScore || 0, state.score.current),
-          experience: (user.statistics?.experience || 0) + state.rewards.experience
+          experience: (user.statistics?.experience || 0) + state.rewards.experience,
+          accuracy: Math.max(user.statistics?.accuracy || 0, state.stats.accuracy)
         }
       });
 
@@ -480,7 +545,7 @@ export const GameProvider = ({ children }) => {
         }
       };
     }
-  }, [state.sessionId, state.gameState, state.rewards, state.score.current, user, updateProfile]);
+  }, [state.sessionId, state.gameState, state.rewards, state.score.current, state.stats.accuracy, user, updateProfile]);
 
   const resetGame = useCallback(() => {
     dispatch({ type: GAME_ACTIONS.RESET_GAME });
@@ -508,7 +573,7 @@ export const GameProvider = ({ children }) => {
     });
   }, []);
 
-  // Game timer
+  // Game timer with auto-completion
   useEffect(() => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.startTime) return;
 
@@ -516,7 +581,9 @@ export const GameProvider = ({ children }) => {
       const currentTime = (Date.now() - state.startTime.getTime()) / 1000;
       updateProgress(currentTime, state.duration);
       
-      if (state.duration > 0 && currentTime >= state.duration) {
+      // Auto-complete game after duration (if set) or after 5 minutes
+      const maxDuration = state.duration || 300; // 5 minutes default
+      if (currentTime >= maxDuration) {
         endGame();
       }
     }, 100);
@@ -546,7 +613,7 @@ export const GameProvider = ({ children }) => {
     };
   }, [state.progress, state.currentTime, state.duration]);
 
-  // Music library functions - simplified search by name only
+  // Music library functions
   const getMusicById = useCallback((id) => {
     return mockMusicLibrary.find(m => m._id === id) || null;
   }, []);
@@ -554,7 +621,6 @@ export const GameProvider = ({ children }) => {
   const searchMusic = useCallback((params) => {
     let results = [...mockMusicLibrary];
     
-    // Search by name/title only
     if (params.q) {
       results = results.filter(m => 
         m.title.toLowerCase().includes(params.q.toLowerCase()) ||
@@ -578,7 +644,6 @@ export const GameProvider = ({ children }) => {
   }, []);
 
   const getRecommendedMusic = useCallback(() => {
-    // Just return popular music based on play count
     return mockMusicLibrary
       .sort((a, b) => b.statistics.playCount - a.statistics.playCount)
       .slice(0, 10);

@@ -1,27 +1,32 @@
-// client/src/components/Game/Piano.jsx - Interactive piano keyboard component
+// src/components/Game/Piano.jsx - Fixed piano layout with proper black key positioning
 import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useAudio } from '../../contexts/AudioContext';
 import { useGame } from '../../contexts/GameContext';
 
-// Simplified piano keys with keyboard mappings
-const PIANO_KEYS = [
-  { note: 'C4', key: 'A', isBlack: false },
-  { note: 'C#4', key: 'W', isBlack: true },
-  { note: 'D4', key: 'S', isBlack: false },
-  { note: 'D#4', key: 'E', isBlack: true },
-  { note: 'E4', key: 'D', isBlack: false },
-  { note: 'F4', key: 'F', isBlack: false },
-  { note: 'F#4', key: 'T', isBlack: true },
-  { note: 'G4', key: 'G', isBlack: false },
-  { note: 'G#4', key: 'Y', isBlack: true },
-  { note: 'A4', key: 'H', isBlack: false },
-  { note: 'A#4', key: 'U', isBlack: true },
-  { note: 'B4', key: 'J', isBlack: false },
-  { note: 'C5', key: 'K', isBlack: false },
-  { note: 'C#5', key: 'O', isBlack: true },
-  { note: 'D5', key: 'L', isBlack: false }
+// Correct piano layout with proper black key positioning
+const PIANO_LAYOUT = [
+  // White keys with their positions and corresponding black keys
+  { note: 'C4', key: 'A', isBlack: false, position: 0, hasBlackKeyAfter: true },
+  { note: 'D4', key: 'S', isBlack: false, position: 1, hasBlackKeyAfter: true },
+  { note: 'E4', key: 'D', isBlack: false, position: 2, hasBlackKeyAfter: false },
+  { note: 'F4', key: 'F', isBlack: false, position: 3, hasBlackKeyAfter: true },
+  { note: 'G4', key: 'G', isBlack: false, position: 4, hasBlackKeyAfter: true },
+  { note: 'A4', key: 'H', isBlack: false, position: 5, hasBlackKeyAfter: true },
+  { note: 'B4', key: 'J', isBlack: false, position: 6, hasBlackKeyAfter: false },
+  { note: 'C5', key: 'K', isBlack: false, position: 7, hasBlackKeyAfter: true },
+  { note: 'D5', key: 'L', isBlack: false, position: 8, hasBlackKeyAfter: false },
+];
+
+// Black keys with their positions relative to white keys
+const BLACK_KEYS = [
+  { note: 'C#4', key: 'W', isBlack: true, positionBetween: [0, 1] }, // Between C4 and D4
+  { note: 'D#4', key: 'E', isBlack: true, positionBetween: [1, 2] }, // Between D4 and E4
+  { note: 'F#4', key: 'T', isBlack: true, positionBetween: [3, 4] }, // Between F4 and G4
+  { note: 'G#4', key: 'Y', isBlack: true, positionBetween: [4, 5] }, // Between G4 and A4
+  { note: 'A#4', key: 'U', isBlack: true, positionBetween: [5, 6] }, // Between A4 and B4
+  { note: 'C#5', key: 'O', isBlack: true, positionBetween: [7, 8] }, // Between C5 and D5
 ];
 
 const NOTE_FREQUENCIES = {
@@ -30,18 +35,18 @@ const NOTE_FREQUENCIES = {
   'A#4': 466.16, 'B4': 493.88, 'C5': 523.25, 'C#5': 554.37, 'D5': 587.33
 };
 
-// Piano Key Component
-const PianoKey = ({ 
-  keyData,
+// White Piano Key Component
+const WhitePianoKey = ({ 
+  keyData, 
   isPressed = false, 
   onPress, 
-  onRelease,
-  disabled = false
+  onRelease, 
+  disabled = false,
+  position 
 }) => {
   const keyRef = useRef(null);
   const [localPressed, setLocalPressed] = useState(false);
 
-  // Handle key press animation
   useEffect(() => {
     if (isPressed && !localPressed) {
       setLocalPressed(true);
@@ -77,42 +82,35 @@ const PianoKey = ({
     }
   }, [keyData.note, onRelease, disabled]);
 
-  const keyClasses = clsx(
-    'relative select-none cursor-pointer transition-all duration-100 border',
-    {
-      // White keys
-      'h-32 bg-white hover:bg-gray-100 border-gray-300 rounded-b-lg shadow-md': !keyData.isBlack && !isPressed && !localPressed,
-      'h-32 bg-blue-500 border-blue-600 shadow-lg': !keyData.isBlack && (isPressed || localPressed),
-      
-      // Black keys
-      'h-20 w-8 bg-gray-900 hover:bg-gray-800 border-gray-700 rounded-b-md shadow-lg absolute z-10': keyData.isBlack && !isPressed && !localPressed,
-      'h-20 w-8 bg-blue-600 border-blue-700 shadow-xl absolute z-10': keyData.isBlack && (isPressed || localPressed),
-      
-      // Disabled state
-      'opacity-50 cursor-not-allowed': disabled
-    }
-  );
-
   return (
     <motion.div
       ref={keyRef}
-      className={keyClasses}
+      className={clsx(
+        'relative select-none cursor-pointer transition-all duration-100 border-r border-gray-300 last:border-r-0',
+        'flex-1 h-32 bg-white hover:bg-gray-50 rounded-b-lg',
+        {
+          'bg-blue-500 text-white shadow-lg': isPressed || localPressed,
+          'opacity-50 cursor-not-allowed': disabled
+        }
+      )}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       animate={{
-        scale: isPressed || localPressed ? 0.98 : 1,
-        y: isPressed || localPressed ? (keyData.isBlack ? 1 : 2) : 0
+        y: isPressed || localPressed ? 2 : 0,
+        boxShadow: isPressed || localPressed ? 
+          'inset 0 3px 8px rgba(0,0,0,0.3)' : 
+          '0 2px 4px rgba(0,0,0,0.1)'
       }}
       transition={{ duration: 0.1, ease: 'easeOut' }}
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
+      whileHover={!disabled ? { scale: 1.02 } : {}}
     >
-      {/* Key Label - Always show */}
+      {/* Key Label */}
       <div className={clsx(
         'absolute top-2 left-1/2 transform -translate-x-1/2 text-xs font-bold pointer-events-none',
-        keyData.isBlack ? 'text-white' : 'text-gray-700'
+        isPressed || localPressed ? 'text-white' : 'text-gray-700'
       )}>
         {keyData.key}
       </div>
@@ -120,17 +118,128 @@ const PianoKey = ({
       {/* Note Label */}
       <div className={clsx(
         'absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-mono pointer-events-none',
-        keyData.isBlack ? 'text-gray-300' : 'text-gray-500'
+        isPressed || localPressed ? 'text-blue-100' : 'text-gray-500'
       )}>
         {keyData.note}
       </div>
 
-      {/* Glow effect for active keys */}
+      {/* Press Effect */}
       {(isPressed || localPressed) && (
-        <div className={clsx(
-          'absolute inset-0 rounded pointer-events-none',
-          keyData.isBlack ? 'shadow-lg shadow-blue-500/50' : 'shadow-lg shadow-blue-400/50'
-        )} />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-blue-400/20 rounded-b-lg pointer-events-none"
+        />
+      )}
+    </motion.div>
+  );
+};
+
+// Black Piano Key Component
+const BlackPianoKey = ({ 
+  keyData, 
+  isPressed = false, 
+  onPress, 
+  onRelease, 
+  disabled = false,
+  leftPosition 
+}) => {
+  const keyRef = useRef(null);
+  const [localPressed, setLocalPressed] = useState(false);
+
+  useEffect(() => {
+    if (isPressed && !localPressed) {
+      setLocalPressed(true);
+      setTimeout(() => setLocalPressed(false), 150);
+    }
+  }, [isPressed, localPressed]);
+
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      onPress(keyData.note);
+    }
+  }, [keyData.note, onPress, disabled]);
+
+  const handleMouseUp = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      onRelease(keyData.note);
+    }
+  }, [keyData.note, onRelease, disabled]);
+
+  const handleTouchStart = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      onPress(keyData.note);
+    }
+  }, [keyData.note, onPress, disabled]);
+
+  const handleTouchEnd = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      onRelease(keyData.note);
+    }
+  }, [keyData.note, onRelease, disabled]);
+
+  return (
+    <motion.div
+      ref={keyRef}
+      className={clsx(
+        'absolute select-none cursor-pointer transition-all duration-100 z-10',
+        'w-8 h-20 bg-gray-900 hover:bg-gray-800 rounded-b-md shadow-lg',
+        {
+          'bg-blue-600 shadow-xl': isPressed || localPressed,
+          'opacity-50 cursor-not-allowed': disabled
+        }
+      )}
+      style={{
+        left: `${leftPosition}%`,
+        transform: 'translateX(-50%)'
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      animate={{
+        y: isPressed || localPressed ? 1 : 0,
+        boxShadow: isPressed || localPressed ? 
+          'inset 0 2px 6px rgba(0,0,0,0.4)' : 
+          '0 4px 8px rgba(0,0,0,0.3)'
+      }}
+      transition={{ duration: 0.1, ease: 'easeOut' }}
+      whileHover={!disabled ? { scale: 1.05 } : {}}
+    >
+      {/* Key Label */}
+      <div className={clsx(
+        'absolute top-1 left-1/2 transform -translate-x-1/2 text-xs font-bold pointer-events-none',
+        isPressed || localPressed ? 'text-white' : 'text-gray-300'
+      )}>
+        {keyData.key}
+      </div>
+
+      {/* Note Label */}
+      <div className={clsx(
+        'absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs font-mono pointer-events-none',
+        isPressed || localPressed ? 'text-blue-100' : 'text-gray-400'
+      )}>
+        {keyData.note}
+      </div>
+
+      {/* Press Effect */}
+      {(isPressed || localPressed) && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-blue-400/30 rounded-b-md pointer-events-none"
+        />
       )}
     </motion.div>
   );
@@ -148,6 +257,18 @@ const Piano = ({
   const { playNote, stopNote } = useAudio();
   const { gameSettings } = useGame();
   
+  // Combine all keys for keyboard mapping
+  const allKeys = useMemo(() => {
+    const keys = {};
+    PIANO_LAYOUT.forEach(key => {
+      keys[key.key] = key.note;
+    });
+    BLACK_KEYS.forEach(key => {
+      keys[key.key] = key.note;
+    });
+    return keys;
+  }, []);
+
   // Key press handlers
   const handleKeyPress = useCallback(async (note) => {
     if (disabled) return;
@@ -179,15 +300,10 @@ const Piano = ({
 
   // Keyboard event handlers
   useEffect(() => {
-    const keyMap = {};
-    PIANO_KEYS.forEach(keyData => {
-      keyMap[`Key${keyData.key}`] = keyData.note;
-    });
-
     const handleKeyDown = (e) => {
       if (disabled || e.repeat) return;
       
-      const note = keyMap[e.code];
+      const note = allKeys[e.key.toUpperCase()];
       if (note && !pressedKeys.has(note)) {
         handleKeyPress(note);
       }
@@ -196,7 +312,7 @@ const Piano = ({
     const handleKeyUp = (e) => {
       if (disabled) return;
       
-      const note = keyMap[e.code];
+      const note = allKeys[e.key.toUpperCase()];
       if (note) {
         handleKeyRelease(note);
       }
@@ -209,56 +325,14 @@ const Piano = ({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
     };
-  }, [disabled, pressedKeys, handleKeyPress, handleKeyRelease]);
+  }, [disabled, pressedKeys, handleKeyPress, handleKeyRelease, allKeys]);
 
-  // Calculate positions for black keys
-  const getBlackKeyPosition = (index) => {
-    const whiteKeyIndex = PIANO_KEYS.slice(0, index).filter(k => !k.isBlack).length;
-    const positions = [8.33, 25, 58.33, 75, 91.67]; // Positions relative to white keys
-    const blackKeyIndex = PIANO_KEYS.slice(0, index).filter(k => k.isBlack).length;
-    return positions[blackKeyIndex] || 0;
+  // Calculate black key positions
+  const getBlackKeyPosition = (positionBetween) => {
+    const [leftPos, rightPos] = positionBetween;
+    const whiteKeyWidth = 100 / PIANO_LAYOUT.length; // Percentage width of each white key
+    return (leftPos + 0.5 + rightPos + 0.5) * whiteKeyWidth / 2;
   };
-
-  // Render piano keys
-  const renderKeys = () => {
-    const whiteKeys = [];
-    const blackKeys = [];
-    
-    PIANO_KEYS.forEach((keyData, index) => {
-      const isPressed = pressedKeys.has(keyData.note);
-      
-      const keyProps = {
-        key: keyData.note,
-        keyData,
-        isPressed,
-        onPress: handleKeyPress,
-        onRelease: handleKeyRelease,
-        disabled
-      };
-      
-      if (keyData.isBlack) {
-        const style = {
-          left: `${getBlackKeyPosition(index)}%`,
-          marginLeft: '-16px' // Half width of black key
-        };
-        blackKeys.push(
-          <div key={keyData.note} className="absolute" style={style}>
-            <PianoKey {...keyProps} />
-          </div>
-        );
-      } else {
-        whiteKeys.push(
-          <div key={keyData.note} className="flex-1 mx-0.5">
-            <PianoKey {...keyProps} />
-          </div>
-        );
-      }
-    });
-    
-    return { whiteKeys, blackKeys };
-  };
-
-  const { whiteKeys, blackKeys } = renderKeys();
 
   return (
     <div className={clsx('piano-container relative max-w-5xl mx-auto', className)}>
@@ -276,16 +350,36 @@ const Piano = ({
         <div 
           ref={pianoRef}
           className="piano-keyboard relative bg-black p-3 rounded-lg shadow-inner"
-          style={{ height: '220px' }}
+          style={{ height: '180px' }}
         >
           {/* White Keys Container */}
           <div className="absolute inset-3 flex">
-            {whiteKeys}
+            {PIANO_LAYOUT.map((keyData) => (
+              <WhitePianoKey
+                key={keyData.note}
+                keyData={keyData}
+                isPressed={pressedKeys.has(keyData.note)}
+                onPress={handleKeyPress}
+                onRelease={handleKeyRelease}
+                disabled={disabled}
+                position={keyData.position}
+              />
+            ))}
           </div>
           
           {/* Black Keys Container */}
           <div className="absolute inset-3">
-            {blackKeys}
+            {BLACK_KEYS.map((keyData) => (
+              <BlackPianoKey
+                key={keyData.note}
+                keyData={keyData}
+                isPressed={pressedKeys.has(keyData.note)}
+                onPress={handleKeyPress}
+                onRelease={handleKeyRelease}
+                disabled={disabled}
+                leftPosition={getBlackKeyPosition(keyData.positionBetween)}
+              />
+            ))}
           </div>
           
           {/* Piano Lid Reflection */}
@@ -325,32 +419,39 @@ const Piano = ({
   );
 };
 
-// Performance optimized piano for game mode
+// Performance optimized piano for game mode with continuous scoring
 export const GamePiano = React.memo(({ 
   onKeystroke,
   gameState,
   showGuide = false 
 }) => {
   const [pressedKeys, setPressedKeys] = useState(new Set());
-  const { isGameActive } = useGame();
+  const { isGameActive, processKeystroke } = useGame();
   
-  // Handle key press with simplified game logic (just add points for any key press)
+  // Handle key press with continuous scoring
   const handleKeyPress = useCallback(async (note) => {
     if (!isGameActive()) return;
 
     const timestamp = Date.now();
     
-    // Simple scoring - every key press gives points
+    // Create keystroke data with points
     const keystrokeData = {
       key: note,
       timestamp: timestamp,
-      points: 10 // Fixed points per key press
+      points: 10, // Base points per key press
+      accuracy: 'good', // Default accuracy
+      combo: 1
     };
     
-    // Update local state
+    // Update local pressed state
     setPressedKeys(prev => new Set([...prev, note]));
     
-    // Send to game context
+    // Process the keystroke through game context (this will update score continuously)
+    if (processKeystroke) {
+      await processKeystroke(keystrokeData);
+    }
+    
+    // Also call the parent callback if provided
     if (onKeystroke) {
       onKeystroke(keystrokeData);
     }
@@ -363,15 +464,49 @@ export const GamePiano = React.memo(({
         return newSet;
       });
     }, 150);
-  }, [isGameActive, onKeystroke]);
+  }, [isGameActive, processKeystroke, onKeystroke]);
+
+  const handleKeyRelease = useCallback((note) => {
+    // Key release doesn't affect scoring, just visual feedback
+    setPressedKeys(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(note);
+      return newSet;
+    });
+  }, []);
 
   return (
-    <Piano
-      onKeyPress={handleKeyPress}
-      pressedKeys={pressedKeys}
-      disabled={!isGameActive()}
-      className="game-piano"
-    />
+    <div className="game-piano-container">
+      <Piano
+        onKeyPress={handleKeyPress}
+        onKeyRelease={handleKeyRelease}
+        pressedKeys={pressedKeys}
+        disabled={!isGameActive()}
+        className="game-piano"
+      />
+      
+      {/* Key Guide */}
+      {showGuide && (
+        <div className="mt-4 text-center">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 inline-block">
+            <h4 className="text-white font-medium mb-2">Piano Keys Guide</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="font-medium text-blue-400 mb-1">White Keys</div>
+                <div className="text-gray-300">A S D F G H J K L</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-400 mb-1">Black Keys</div>
+                <div className="text-gray-300">W E T Y U O</div>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-gray-400">
+              Each key press earns you 10 points!
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 });
 
