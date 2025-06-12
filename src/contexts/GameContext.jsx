@@ -1,4 +1,4 @@
-// src/contexts/GameContext.jsx - Fixed with progressive scoring and combo multipliers
+// src/contexts/GameContext.jsx - FIXED with correct progressive scoring
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -224,7 +224,7 @@ const gameReducer = (state, action) => {
         progress: 0,
         score: { 
           ...initialState.score,
-          basePointsPerKey: 10 // Reset base points
+          basePointsPerKey: 10
         },
         stats: { ...initialState.stats },
         keystrokes: [],
@@ -263,7 +263,8 @@ const gameReducer = (state, action) => {
 
     case GAME_ACTIONS.UPDATE_COMBO:
       const newCombo = action.payload;
-      const newMultiplier = Math.floor(newCombo / 10) + 1; // Every 10 combo = +1 multiplier
+      // FIXED: Correct multiplier calculation
+      const newMultiplier = Math.floor(newCombo / 10) + 1;
       
       return {
         ...state,
@@ -330,9 +331,9 @@ const gameReducer = (state, action) => {
   }
 };
 
-// Enhanced reward calculation with progressive scoring
+// Enhanced reward calculation
 const calculateRewards = (state) => {
-  const baseCoins = Math.floor(state.score.current * 0.01); // 1% of score as coins
+  const baseCoins = Math.floor(state.score.current * 0.01);
   const comboBonus = state.score.maxCombo >= 100 ? 100 : 
                     state.score.maxCombo >= 50 ? 50 : 
                     state.score.maxCombo >= 25 ? 25 : 0;
@@ -409,27 +410,44 @@ export const GameProvider = ({ children }) => {
     }
   }, [state.sessionId, state.gameState, t]);
 
-  // Enhanced keystroke processing with FIXED progressive scoring
+  // FIXED: Enhanced keystroke processing with CORRECT progressive scoring
   const processKeystroke = useCallback(async (keystrokeData) => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.sessionId) return;
 
-    // Add keystroke to history
-    dispatch({
-      type: GAME_ACTIONS.ADD_KEYSTROKE,
-      payload: keystrokeData
-    });
-
-    // FIXED: Calculate progressive points based on combo
-    const basePoints = 10; // Base points per key
-    const comboBonus = Math.floor(state.score.combo / 5) * 2; // +2 points per 5 combo
-    const multiplierBonus = (state.score.multiplier - 1) * 5; // +5 points per multiplier level
-    const totalPoints = basePoints + comboBonus + multiplierBonus;
-
-    // Update combo FIRST (increment on each key press)
+    // First, update combo (increment on each key press)
     const newCombo = state.score.combo + 1;
+    
+    // Update combo in state
     dispatch({
       type: GAME_ACTIONS.UPDATE_COMBO,
       payload: newCombo
+    });
+
+    // FIXED: Calculate progressive points with correct combo multiplier
+    const basePoints = 10; // Base points per key
+    
+    // Combo bonus: +1 point for every 5 combo
+    const comboBonus = Math.floor(newCombo / 5);
+    
+    // Multiplier bonus: 1x for 0-9 combo, 2x for 10-19, 3x for 20-29, etc.
+    const multiplier = Math.floor(newCombo / 10) + 1;
+    
+    // Total points = (base + combo bonus) * multiplier
+    const totalPoints = (basePoints + comboBonus) * multiplier;
+
+    console.log(`🎹 Key: ${keystrokeData.key} | Combo: ${newCombo} | Multiplier: ${multiplier}x | Points: ${totalPoints}`);
+
+    // Add keystroke to history
+    const enhancedKeystroke = {
+      ...keystrokeData,
+      points: totalPoints,
+      combo: newCombo,
+      multiplier: multiplier
+    };
+
+    dispatch({
+      type: GAME_ACTIONS.ADD_KEYSTROKE,
+      payload: enhancedKeystroke
     });
 
     // Update score with calculated points
@@ -473,11 +491,20 @@ export const GameProvider = ({ children }) => {
       scoreElement.innerHTML = `+${totalPoints}`;
       scoreElement.className = 'floating-score';
       
-      // Dynamic color based on combo level
+      // Dynamic color and size based on combo level
       let color = '#10b981'; // Green default
-      if (newCombo >= 50) color = '#f59e0b'; // Gold for high combo
-      else if (newCombo >= 25) color = '#8b5cf6'; // Purple for medium combo
-      else if (newCombo >= 10) color = '#3b82f6'; // Blue for low combo
+      let fontSize = 24;
+      
+      if (newCombo >= 50) {
+        color = '#f59e0b'; // Gold for high combo
+        fontSize = 36;
+      } else if (newCombo >= 25) {
+        color = '#8b5cf6'; // Purple for medium combo
+        fontSize = 32;
+      } else if (newCombo >= 10) {
+        color = '#3b82f6'; // Blue for low combo
+        fontSize = 28;
+      }
       
       scoreElement.style.cssText = `
         position: fixed;
@@ -485,7 +512,7 @@ export const GameProvider = ({ children }) => {
         left: 50%;
         transform: translate(-50%, -50%);
         color: ${color};
-        font-size: ${Math.min(24 + Math.floor(newCombo / 10) * 2, 40)}px;
+        font-size: ${fontSize}px;
         font-weight: bold;
         z-index: 1000;
         pointer-events: none;
@@ -506,9 +533,10 @@ export const GameProvider = ({ children }) => {
       }, 1000);
     }
 
-    // Enhanced combo milestone notifications with better rewards
+    // Enhanced combo milestone notifications with progressive rewards
     if (newCombo > 0 && newCombo % 25 === 0) {
-      const bonusPoints = newCombo * 2; // Bonus points for milestones
+      const bonusPoints = newCombo * 2; // Progressive bonus
+      
       dispatch({
         type: GAME_ACTIONS.UPDATE_SCORE,
         payload: {
@@ -527,10 +555,10 @@ export const GameProvider = ({ children }) => {
     }
 
     return {
-      totalScore: newScore,
+      totalScore: newScore + (newCombo % 25 === 0 ? newCombo * 2 : 0),
       points: totalPoints,
       combo: newCombo,
-      multiplier: Math.floor(newCombo / 10) + 1
+      multiplier: multiplier
     };
   }, [state.gameState, state.sessionId, state.score, state.stats, state.startTime]);
 
