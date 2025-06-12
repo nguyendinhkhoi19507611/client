@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from 'react-error-boundary';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 // Providers and Context
 import { AuthProvider } from './contexts/AuthContext';
@@ -31,6 +32,17 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 // Global Styles
 import './styles/globals.css';
 
+// Create a QueryClient instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+    },
+  },
+});
+
 // Main App Component
 function App() {
   return (
@@ -41,87 +53,89 @@ function App() {
       }}
       onReset={() => window.location.reload()}
     >
-      <HelmetProvider>
-        <Router>
-          <ThemeProvider>
-            <LanguageProvider>
-              <AuthProvider>
-                <AudioProvider>
-                  <GameProvider>
-                    <div className="App min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-                      <Suspense fallback={<AppLoadingScreen />}>
-                        <Routes>
-                          {/* Public Routes */}
-                          <Route path="/" element={<Layout />}>
-                            <Route index element={<HomePage />} />
-                            <Route path="login" element={<LoginPage />} />
-                            <Route path="register" element={<RegisterPage />} />
-                            <Route path="music" element={<MusicLibraryPage />} />
-                            
-                            {/* Protected Routes */}
-                            <Route path="dashboard" element={
-                              <ProtectedRoute>
-                                <DashboardPage />
-                              </ProtectedRoute>
-                            } />
-                            
-                            <Route path="game" element={
-                              <ProtectedRoute>
-                                <GamePage />
-                              </ProtectedRoute>
-                            } />
-                            
-                            {/* Redirects */}
-                            <Route path="music/:id" element={<Navigate to="/game" replace />} />
-                            <Route path="404" element={<NotFoundPage />} />
-                            <Route path="*" element={<Navigate to="/404" replace />} />
-                          </Route>
-                        </Routes>
-                      </Suspense>
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <Router>
+            <ThemeProvider>
+              <LanguageProvider>
+                <AuthProvider>
+                  <AudioProvider>
+                    <GameProvider>
+                      <div className="App min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+                        <Suspense fallback={<AppLoadingScreen />}>
+                          <Routes>
+                            {/* Public Routes */}
+                            <Route path="/" element={<Layout />}>
+                              <Route index element={<HomePage />} />
+                              <Route path="login" element={<LoginPage />} />
+                              <Route path="register" element={<RegisterPage />} />
+                              <Route path="music" element={<MusicLibraryPage />} />
+                              
+                              {/* Protected Routes */}
+                              <Route path="dashboard" element={
+                                <ProtectedRoute>
+                                  <DashboardPage />
+                                </ProtectedRoute>
+                              } />
+                              
+                              <Route path="game" element={
+                                <ProtectedRoute>
+                                  <GamePage />
+                                </ProtectedRoute>
+                              } />
+                              
+                              {/* Redirects */}
+                              <Route path="music/:id" element={<Navigate to="/game" replace />} />
+                              <Route path="404" element={<NotFoundPage />} />
+                              <Route path="*" element={<Navigate to="/404" replace />} />
+                            </Route>
+                          </Routes>
+                        </Suspense>
 
-                      {/* Global Toast Notifications */}
-                      <Toaster
-                        position="top-right"
-                        toastOptions={{
-                          duration: 4000,
-                          style: {
-                            background: 'rgba(0, 0, 0, 0.8)',
-                            color: '#fff',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            borderRadius: '12px'
-                          },
-                          success: {
-                            iconTheme: {
-                              primary: '#10b981',
-                              secondary: '#fff'
+                        {/* Global Toast Notifications */}
+                        <Toaster
+                          position="top-right"
+                          toastOptions={{
+                            duration: 4000,
+                            style: {
+                              background: 'rgba(0, 0, 0, 0.8)',
+                              color: '#fff',
+                              backdropFilter: 'blur(10px)',
+                              border: '1px solid rgba(255, 255, 255, 0.1)',
+                              borderRadius: '12px'
+                            },
+                            success: {
+                              iconTheme: {
+                                primary: '#10b981',
+                                secondary: '#fff'
+                              }
+                            },
+                            error: {
+                              iconTheme: {
+                                primary: '#ef4444',
+                                secondary: '#fff'
+                              }
                             }
-                          },
-                          error: {
-                            iconTheme: {
-                              primary: '#ef4444',
-                              secondary: '#fff'
-                            }
-                          }
-                        }}
-                      />
+                          }}
+                        />
 
-                      {/* Global Audio Context (for piano sounds) */}
-                      <div id="audio-context" className="hidden" />
-                      
-                      {/* Game Canvas Container */}
-                      <div id="game-canvas" className="fixed inset-0 pointer-events-none z-0" />
-                      
-                      {/* Particle Effects Container */}
-                      <div id="particle-effects" className="fixed inset-0 pointer-events-none z-50" />
-                    </div>
-                  </GameProvider>
-                </AudioProvider>
-              </AuthProvider>
-            </LanguageProvider>
-          </ThemeProvider>
-        </Router>
-      </HelmetProvider>
+                        {/* Global Audio Context (for piano sounds) */}
+                        <div id="audio-context" className="hidden" />
+                        
+                        {/* Game Canvas Container */}
+                        <div id="game-canvas" className="fixed inset-0 pointer-events-none z-0" />
+                        
+                        {/* Particle Effects Container */}
+                        <div id="particle-effects" className="fixed inset-0 pointer-events-none z-50" />
+                      </div>
+                    </GameProvider>
+                  </AudioProvider>
+                </AuthProvider>
+              </LanguageProvider>
+            </ThemeProvider>
+          </Router>
+        </HelmetProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

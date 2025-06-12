@@ -16,10 +16,43 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useQuery } from 'react-query';
 import { formatNumber } from '../../utils/formatters';
-import { musicService } from '../../services/musicService';
 import Button from '../../components/UI/Button';
+
+// Mock music service for now
+const mockMusicService = {
+  getMusicStats: () => Promise.resolve({
+    stats: {
+      totalSongs: 1234,
+      totalArtists: 456,
+      totalGenres: 12,
+      totalPlays: 98765
+    }
+  })
+};
+
+// Simple useQuery implementation for this component
+const useQuery = (key, queryFn, options = {}) => {
+  const [data, setData] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  
+  React.useEffect(() => {
+    if (typeof queryFn === 'function') {
+      Promise.resolve(queryFn())
+        .then(result => {
+          setData(result);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          setError(err);
+          setIsLoading(false);
+        });
+    }
+  }, []);
+  
+  return { data, isLoading, error };
+};
 
 // Hero Section Component
 const HeroSection = () => {
@@ -305,7 +338,7 @@ const FeaturesSection = () => {
 const StatsSection = () => {
   const { data: musicStats } = useQuery(
     'musicStats',
-    () => musicService.getMusicStats(),
+    () => mockMusicService.getMusicStats(),
     { staleTime: 5 * 60 * 1000 }
   );
 
