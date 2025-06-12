@@ -1,14 +1,10 @@
-// Game state management context
+// Game state management context with mock data
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
-import { useMutation, useQueryClient } from 'react-query';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
-import { gameService } from '../services/gameService';
-import { socketService } from '../services/socketService';
-// Game Context
+
 const GameContext = createContext();
 
-// Game States
 const GAME_STATES = {
   IDLE: 'idle',
   LOADING: 'loading',
@@ -18,7 +14,6 @@ const GAME_STATES = {
   ERROR: 'error'
 };
 
-// Game Actions
 const GAME_ACTIONS = {
   SET_STATE: 'SET_STATE',
   SET_MUSIC: 'SET_MUSIC',
@@ -34,18 +29,16 @@ const GAME_ACTIONS = {
   SET_ERROR: 'SET_ERROR',
   UPDATE_PROGRESS: 'UPDATE_PROGRESS',
   ADD_ACHIEVEMENT: 'ADD_ACHIEVEMENT',
-  UPDATE_MULTIPLIERS: 'UPDATE_MULTIPLIERS'
+  UPDATE_MULTIPLIERS: 'UPDATE_MULTIPLIERS',
+  CLAIM_REWARDS: 'CLAIM_REWARDS'
 };
 
-// Initial State
 const initialState = {
-  // Game Status
   gameState: GAME_STATES.IDLE,
   sessionId: null,
   isLoading: false,
   error: null,
 
-  // Music & Settings
   currentMusic: null,
   gameSettings: {
     difficulty: 'easy',
@@ -55,13 +48,11 @@ const initialState = {
     visualEffects: true
   },
 
-  // Game Progress
   startTime: null,
   currentTime: 0,
   progress: 0,
   duration: 0,
 
-  // Scoring
   score: {
     current: 0,
     base: 0,
@@ -71,7 +62,6 @@ const initialState = {
     maxCombo: 0
   },
 
-  // Gameplay Stats
   stats: {
     totalNotes: 0,
     correctNotes: 0,
@@ -82,28 +72,25 @@ const initialState = {
     streak: 0
   },
 
-  // Keystrokes & Input
   keystrokes: [],
   activeKeys: new Set(),
   recentKeystrokes: [],
 
-  // Rewards & Achievements
   rewards: {
     coins: 0,
     experience: 0,
-    bonusCoins: 0
+    bonusCoins: 0,
+    claimed: false
   },
   achievements: [],
   recentAchievements: [],
 
-  // Visual Effects
   effects: {
     particles: [],
     animations: [],
     feedback: []
   },
 
-  // Performance
   performance: {
     fps: 60,
     latency: 0,
@@ -111,7 +98,6 @@ const initialState = {
   }
 };
 
-// Game Reducer
 const gameReducer = (state, action) => {
   switch (action.type) {
     case GAME_ACTIONS.SET_STATE:
@@ -145,11 +131,12 @@ const gameReducer = (state, action) => {
         startTime: new Date(),
         currentTime: 0,
         progress: 0,
-        score: initialState.score,
+        score: { ...initialState.score, multiplier: state.gameSettings.difficulty === 'expert' ? 2.0 : 1.0 },
         stats: initialState.stats,
         keystrokes: [],
         achievements: [],
-        effects: initialState.effects
+        effects: initialState.effects,
+        rewards: { ...initialState.rewards }
       };
 
     case GAME_ACTIONS.UPDATE_SCORE:
@@ -169,7 +156,6 @@ const gameReducer = (state, action) => {
       const newKeystrokes = [...state.keystrokes, keystroke];
       const recentKeystrokes = [...state.recentKeystrokes, keystroke].slice(-10);
       
-      // Update stats based on keystroke
       const updatedStats = { ...state.stats };
       updatedStats.totalNotes += 1;
       
@@ -220,11 +206,27 @@ const gameReducer = (state, action) => {
       };
 
     case GAME_ACTIONS.END_GAME:
+      const finalRewards = {
+        coins: Math.floor(state.score.current * 0.01), // 1 coin per 100 points
+        experience: Math.floor(state.score.current * 0.1),
+        bonusCoins: state.score.maxCombo >= 50 ? 10 : 0,
+        claimed: false
+      };
+
       return {
         ...state,
         gameState: GAME_STATES.COMPLETED,
-        rewards: action.payload.rewards || state.rewards,
+        rewards: finalRewards,
         achievements: [...state.achievements, ...(action.payload.achievements || [])]
+      };
+
+    case GAME_ACTIONS.CLAIM_REWARDS:
+      return {
+        ...state,
+        rewards: {
+          ...state.rewards,
+          claimed: true
+        }
       };
 
     case GAME_ACTIONS.RESET_GAME:
@@ -269,78 +271,80 @@ const gameReducer = (state, action) => {
   }
 };
 
-// Game Provider Component
+// Mock music database
+const mockMusic = [
+  {
+    _id: '1',
+    title: 'Für Elise',
+    artist: 'Beethoven',
+    genre: 'classical',
+    difficulty: { level: 'medium' },
+    duration: 180,
+    statistics: {
+      playCount: 12500,
+      averageScore: 8500,
+      averageAccuracy: 85.2
+    },
+    availability: { premium: false },
+    sheet: {
+      notes: [
+        { note: 'E5', time: 1000, duration: 500 },
+        { note: 'D#5', time: 1500, duration: 500 },
+        { note: 'E5', time: 2000, duration: 500 },
+        { note: 'D#5', time: 2500, duration: 500 },
+        { note: 'E5', time: 3000, duration: 500 },
+        { note: 'B4', time: 3500, duration: 500 },
+        { note: 'D5', time: 4000, duration: 500 },
+        { note: 'C5', time: 4500, duration: 500 },
+        { note: 'A4', time: 5000, duration: 1000 }
+      ]
+    }
+  },
+  {
+    _id: '2',
+    title: 'Canon in D',
+    artist: 'Pachelbel',
+    genre: 'classical',
+    difficulty: { level: 'hard' },
+    duration: 240,
+    statistics: {
+      playCount: 8200,
+      averageScore: 9200,
+      averageAccuracy: 78.9
+    },
+    availability: { premium: false }
+  },
+  {
+    _id: '3',
+    title: 'Moonlight Sonata',
+    artist: 'Beethoven',
+    genre: 'classical',
+    difficulty: { level: 'expert' },
+    duration: 300,
+    statistics: {
+      playCount: 5600,
+      averageScore: 12000,
+      averageAccuracy: 72.1
+    },
+    availability: { premium: true }
+  }
+];
+
 export const GameProvider = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
-  const { user, isAuthenticated } = useAuth();
-  const queryClient = useQueryClient();
+  const { user, updateProfile } = useAuth();
 
-  // Start Game Mutation
-  const startGameMutation = useMutation(gameService.startGame, {
-    onMutate: () => {
-      dispatch({ type: GAME_ACTIONS.SET_STATE, payload: GAME_STATES.LOADING });
-    },
-    onSuccess: (response) => {
-      const { game } = response;
-      dispatch({
-        type: GAME_ACTIONS.START_GAME,
-        payload: {
-          sessionId: game.sessionId
-        }
-      });
-      
-      // Join socket room
-      if (socketService.isConnected()) {
-        socketService.joinGame(game.sessionId);
-      }
-      
-      toast.success('Game started!');
-    },
-    onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Failed to start game';
-      dispatch({
-        type: GAME_ACTIONS.SET_ERROR,
-        payload: errorMessage
-      });
-      toast.error(errorMessage);
-    }
-  });
-
-  // End Game Mutation
-  const endGameMutation = useMutation(gameService.endGame, {
-    onSuccess: (response) => {
-      dispatch({
-        type: GAME_ACTIONS.END_GAME,
-        payload: response.results
-      });
-      queryClient.invalidateQueries(['userStats', 'balance']);
-    },
-    onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Failed to end game';
-      dispatch({
-        type: GAME_ACTIONS.SET_ERROR,
-        payload: errorMessage
-      });
-    }
-  });
-
-  // Claim Rewards Mutation
-  const claimRewardsMutation = useMutation(gameService.claimRewards, {
-    onSuccess: (response) => {
-      toast.success(`Claimed ${response.rewards.coins} BigCoins!`);
-      queryClient.invalidateQueries(['balance', 'userStats']);
-    },
-    onError: (error) => {
-      toast.error('Failed to claim rewards');
-    }
-  });
-
-  // Game Actions
+  // Mock start game function
   const startGame = useCallback(async (musicId, settings = {}) => {
-    if (!isAuthenticated) {
+    if (!user) {
       toast.error('Please login to play');
       return;
     }
+
+    dispatch({ type: GAME_ACTIONS.SET_STATE, payload: GAME_STATES.LOADING });
+
+    // Simulate loading delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const gameSettings = {
       ...state.gameSettings,
@@ -352,78 +356,111 @@ export const GameProvider = ({ children }) => {
       payload: gameSettings
     });
 
-    return startGameMutation.mutateAsync({
-      musicId,
-      settings: gameSettings
+    const sessionId = Date.now().toString();
+    dispatch({
+      type: GAME_ACTIONS.START_GAME,
+      payload: { sessionId }
     });
-  }, [isAuthenticated, state.gameSettings, startGameMutation]);
+
+    toast.success('Game started!');
+  }, [user, state.gameSettings]);
 
   const pauseGame = useCallback(() => {
     if (state.gameState === GAME_STATES.PLAYING) {
       dispatch({ type: GAME_ACTIONS.PAUSE_GAME });
-      
-      if (state.sessionId) {
-        gameService.pauseGame(state.sessionId);
-      }
     }
-  }, [state.gameState, state.sessionId]);
+  }, [state.gameState]);
 
   const resumeGame = useCallback(() => {
     if (state.gameState === GAME_STATES.PAUSED) {
       dispatch({ type: GAME_ACTIONS.RESUME_GAME });
-      
-      if (state.sessionId) {
-        gameService.resumeGame(state.sessionId);
-      }
     }
-  }, [state.gameState, state.sessionId]);
+  }, [state.gameState]);
 
   const endGame = useCallback(async () => {
     if (state.sessionId && state.gameState === GAME_STATES.PLAYING) {
-      return endGameMutation.mutateAsync(state.sessionId);
+      // Simulate ending delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      dispatch({
+        type: GAME_ACTIONS.END_GAME,
+        payload: { achievements: [] }
+      });
     }
-  }, [state.sessionId, state.gameState, endGameMutation]);
+  }, [state.sessionId, state.gameState]);
 
   const processKeystroke = useCallback(async (keystrokeData) => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.sessionId) return;
 
-    try {
-      // Add keystroke locally for immediate feedback
-      dispatch({
-        type: GAME_ACTIONS.ADD_KEYSTROKE,
-        payload: keystrokeData
-      });
+    // Add keystroke locally for immediate feedback
+    dispatch({
+      type: GAME_ACTIONS.ADD_KEYSTROKE,
+      payload: keystrokeData
+    });
 
-      // Send to server
-      const response = await gameService.processKeystroke(state.sessionId, keystrokeData);
+    // Calculate score based on accuracy
+    let points = 0;
+    if (keystrokeData.accuracy === 'perfect') {
+      points = 100 * state.score.multiplier;
+    } else if (keystrokeData.accuracy === 'good') {
+      points = 50 * state.score.multiplier;
+    }
+
+    // Update score
+    dispatch({
+      type: GAME_ACTIONS.UPDATE_SCORE,
+      payload: {
+        base: state.score.base + points
+      }
+    });
+
+    // Update combo
+    const newCombo = keystrokeData.accuracy !== 'miss' ? state.score.combo + 1 : 0;
+    dispatch({
+      type: GAME_ACTIONS.UPDATE_COMBO,
+      payload: newCombo
+    });
+
+    return {
+      totalScore: state.score.current + points,
+      points,
+      combo: newCombo
+    };
+  }, [state.gameState, state.sessionId, state.score]);
+
+  const claimRewards = useCallback(async () => {
+    if (state.sessionId && state.gameState === GAME_STATES.COMPLETED && !state.rewards.claimed) {
+      // Simulate claiming delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update user coins
+      const currentCoins = user?.coins?.available || 0;
+      const totalReward = state.rewards.coins + state.rewards.bonusCoins;
       
-      // Update score and combo
-      dispatch({
-        type: GAME_ACTIONS.UPDATE_SCORE,
-        payload: {
-          current: response.totalScore,
-          base: response.points
+      await updateProfile({
+        coins: {
+          ...user.coins,
+          available: currentCoins + totalReward,
+          total: (user.coins?.total || 0) + totalReward
+        },
+        statistics: {
+          ...user.statistics,
+          totalGames: (user.statistics?.totalGames || 0) + 1,
+          bestScore: Math.max(user.statistics?.bestScore || 0, state.score.current),
+          experience: (user.statistics?.experience || 0) + state.rewards.experience
         }
       });
 
-      dispatch({
-        type: GAME_ACTIONS.UPDATE_COMBO,
-        payload: response.combo
-      });
-
-      // Send via socket for multiplayer
-      if (socketService.isConnected()) {
-        socketService.sendKeystroke({
-          sessionId: state.sessionId,
-          ...keystrokeData
-        });
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Keystroke processing error:', error);
+      dispatch({ type: GAME_ACTIONS.CLAIM_REWARDS });
+      
+      return {
+        rewards: {
+          coins: totalReward,
+          experience: state.rewards.experience
+        }
+      };
     }
-  }, [state.gameState, state.sessionId]);
+  }, [state.sessionId, state.gameState, state.rewards, user, updateProfile]);
 
   const resetGame = useCallback(() => {
     dispatch({ type: GAME_ACTIONS.RESET_GAME });
@@ -443,12 +480,6 @@ export const GameProvider = ({ children }) => {
     });
   }, []);
 
-  const claimRewards = useCallback(async () => {
-    if (state.sessionId && state.gameState === GAME_STATES.COMPLETED) {
-      return claimRewardsMutation.mutateAsync(state.sessionId);
-    }
-  }, [state.sessionId, state.gameState, claimRewardsMutation]);
-
   const updateProgress = useCallback((currentTime, duration) => {
     const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
     dispatch({
@@ -457,39 +488,7 @@ export const GameProvider = ({ children }) => {
     });
   }, []);
 
-  // Socket Event Handlers
-  useEffect(() => {
-    if (!socketService.isConnected()) return;
-
-    const handleGameJoined = (data) => {
-      console.log('Game joined:', data);
-    };
-
-    const handleGameError = (error) => {
-      dispatch({
-        type: GAME_ACTIONS.SET_ERROR,
-        payload: error.message
-      });
-      toast.error(error.message);
-    };
-
-    const handlePlayerKeystroke = (data) => {
-      // Handle multiplayer keystroke events
-      console.log('Player keystroke:', data);
-    };
-
-    socketService.on('game_joined', handleGameJoined);
-    socketService.on('game_error', handleGameError);
-    socketService.on('player_keystroke', handlePlayerKeystroke);
-
-    return () => {
-      socketService.off('game_joined', handleGameJoined);
-      socketService.off('game_error', handleGameError);
-      socketService.off('player_keystroke', handlePlayerKeystroke);
-    };
-  }, []);
-
-  // Game Timer
+  // Game timer
   useEffect(() => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.startTime) return;
 
@@ -506,7 +505,7 @@ export const GameProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [state.gameState, state.startTime, state.duration, updateProgress, endGame]);
 
-  // Helper Functions
+  // Helper functions
   const isGameActive = useCallback(() => {
     return state.gameState === GAME_STATES.PLAYING;
   }, [state.gameState]);
@@ -528,12 +527,34 @@ export const GameProvider = ({ children }) => {
     };
   }, [state.progress, state.currentTime, state.duration]);
 
-  // Context Value
-  const value = {
-    // State
-    ...state,
+  // Mock functions to get music data
+  const getMusicById = useCallback((id) => {
+    return mockMusic.find(m => m._id === id) || null;
+  }, []);
+
+  const searchMusic = useCallback((params) => {
+    let results = [...mockMusic];
     
-    // Actions
+    if (params.q) {
+      results = results.filter(m => 
+        m.title.toLowerCase().includes(params.q.toLowerCase()) ||
+        m.artist.toLowerCase().includes(params.q.toLowerCase())
+      );
+    }
+    
+    if (params.genres && params.genres.length > 0) {
+      results = results.filter(m => params.genres.includes(m.genre));
+    }
+    
+    if (params.difficulties && params.difficulties.length > 0) {
+      results = results.filter(m => params.difficulties.includes(m.difficulty.level));
+    }
+    
+    return { music: results, total: results.length };
+  }, []);
+
+  const value = {
+    ...state,
     startGame,
     pauseGame,
     resumeGame,
@@ -544,17 +565,16 @@ export const GameProvider = ({ children }) => {
     updateSettings,
     claimRewards,
     updateProgress,
-    
-    // Helpers
     isGameActive,
     isGamePaused,
     isGameCompleted,
     getGameProgress,
-    
-    // Loading States
-    isStarting: startGameMutation.isLoading,
-    isEnding: endGameMutation.isLoading,
-    isClaiming: claimRewardsMutation.isLoading
+    getMusicById,
+    searchMusic,
+    mockMusic,
+    isStarting: false,
+    isEnding: false,
+    isClaiming: false
   };
 
   return (
@@ -564,7 +584,6 @@ export const GameProvider = ({ children }) => {
   );
 };
 
-// Custom Hook
 export const useGame = () => {
   const context = useContext(GameContext);
   if (!context) {

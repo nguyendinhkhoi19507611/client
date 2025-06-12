@@ -1,7 +1,6 @@
-// Music library and browse page
+// Music library and browse page with mock data
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery } from 'react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
@@ -21,10 +20,189 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../../contexts/AuthContext';
+import { useGame } from '../../contexts/GameContext';
 import { formatTime, formatNumber } from '../../utils/formatters';
-import { musicService } from '../../services/musicService';
 import Button from '../../components/UI/Button';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
+
+// Extended mock music database
+const mockMusicLibrary = [
+  {
+    _id: '1',
+    title: 'Für Elise',
+    artist: 'Beethoven',
+    genre: 'classical',
+    difficulty: { level: 'medium' },
+    duration: 180,
+    statistics: {
+      playCount: 12500,
+      averageScore: 8500,
+      averageAccuracy: 85.2
+    },
+    availability: { premium: false },
+    trending: true
+  },
+  {
+    _id: '2',
+    title: 'Canon in D',
+    artist: 'Pachelbel',
+    genre: 'classical',
+    difficulty: { level: 'hard' },
+    duration: 240,
+    statistics: {
+      playCount: 8200,
+      averageScore: 9200,
+      averageAccuracy: 78.9
+    },
+    availability: { premium: false },
+    featured: true
+  },
+  {
+    _id: '3',
+    title: 'Moonlight Sonata',
+    artist: 'Beethoven',
+    genre: 'classical',
+    difficulty: { level: 'expert' },
+    duration: 300,
+    statistics: {
+      playCount: 5600,
+      averageScore: 12000,
+      averageAccuracy: 72.1
+    },
+    availability: { premium: true }
+  },
+  {
+    _id: '4',
+    title: 'Bohemian Rhapsody',
+    artist: 'Queen',
+    genre: 'rock',
+    difficulty: { level: 'expert' },
+    duration: 355,
+    statistics: {
+      playCount: 18900,
+      averageScore: 11500,
+      averageAccuracy: 68.4
+    },
+    availability: { premium: true },
+    trending: true,
+    featured: true
+  },
+  {
+    _id: '5',
+    title: 'Imagine',
+    artist: 'John Lennon',
+    genre: 'pop',
+    difficulty: { level: 'easy' },
+    duration: 183,
+    statistics: {
+      playCount: 25600,
+      averageScore: 6500,
+      averageAccuracy: 92.1
+    },
+    availability: { premium: false },
+    trending: true
+  },
+  {
+    _id: '6',
+    title: 'Hotel California',
+    artist: 'Eagles',
+    genre: 'rock',
+    difficulty: { level: 'hard' },
+    duration: 391,
+    statistics: {
+      playCount: 14200,
+      averageScore: 9800,
+      averageAccuracy: 76.3
+    },
+    availability: { premium: false }
+  },
+  {
+    _id: '7',
+    title: 'Shape of You',
+    artist: 'Ed Sheeran',
+    genre: 'pop',
+    difficulty: { level: 'medium' },
+    duration: 233,
+    statistics: {
+      playCount: 31200,
+      averageScore: 7200,
+      averageAccuracy: 88.7
+    },
+    availability: { premium: false },
+    trending: true
+  },
+  {
+    _id: '8',
+    title: 'Chopin Nocturne Op.9 No.2',
+    artist: 'Chopin',
+    genre: 'classical',
+    difficulty: { level: 'expert' },
+    duration: 270,
+    statistics: {
+      playCount: 7800,
+      averageScore: 13200,
+      averageAccuracy: 71.9
+    },
+    availability: { premium: true },
+    featured: true
+  },
+  {
+    _id: '9',
+    title: 'Let It Be',
+    artist: 'The Beatles',
+    genre: 'pop',
+    difficulty: { level: 'easy' },
+    duration: 243,
+    statistics: {
+      playCount: 28700,
+      averageScore: 6800,
+      averageAccuracy: 91.3
+    },
+    availability: { premium: false }
+  },
+  {
+    _id: '10',
+    title: 'Stairway to Heaven',
+    artist: 'Led Zeppelin',
+    genre: 'rock',
+    difficulty: { level: 'hard' },
+    duration: 482,
+    statistics: {
+      playCount: 16800,
+      averageScore: 10200,
+      averageAccuracy: 74.8
+    },
+    availability: { premium: true }
+  },
+  {
+    _id: '11',
+    title: 'All of Me',
+    artist: 'John Legend',
+    genre: 'pop',
+    difficulty: { level: 'medium' },
+    duration: 269,
+    statistics: {
+      playCount: 22400,
+      averageScore: 7600,
+      averageAccuracy: 86.2
+    },
+    availability: { premium: false }
+  },
+  {
+    _id: '12',
+    title: 'Wonderwall',
+    artist: 'Oasis',
+    genre: 'rock',
+    difficulty: { level: 'medium' },
+    duration: 258,
+    statistics: {
+      playCount: 19300,
+      averageScore: 7900,
+      averageAccuracy: 84.1
+    },
+    availability: { premium: false }
+  }
+];
 
 // Music Card Component
 const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
@@ -61,6 +239,11 @@ const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
             {music.availability?.premium && (
               <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
                 <Crown className="w-3 h-3 text-yellow-900" />
+              </div>
+            )}
+            {music.trending && (
+              <div className="absolute -top-1 -left-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                <TrendingUp className="w-3 h-3 text-white" />
               </div>
             )}
           </div>
@@ -135,6 +318,12 @@ const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
           </div>
         )}
         
+        {music.trending && (
+          <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <TrendingUp className="w-4 h-4 text-white" />
+          </div>
+        )}
+        
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button
@@ -191,7 +380,7 @@ const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
   );
 };
 
-// Filter Sidebar Component
+// Filter Sidebar Component (unchanged)
 const FilterSidebar = ({ filters, onFilterChange, isOpen, onClose }) => {
   const genres = [
     'pop', 'rock', 'jazz', 'classical', 'electronic', 'hip-hop',
@@ -204,7 +393,6 @@ const FilterSidebar = ({ filters, onFilterChange, isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -213,7 +401,6 @@ const FilterSidebar = ({ filters, onFilterChange, isOpen, onClose }) => {
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           />
           
-          {/* Sidebar */}
           <motion.div
             initial={{ x: -300 }}
             animate={{ x: 0 }}
@@ -367,6 +554,7 @@ const MusicLibraryPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const { setMusic } = useGame();
 
   // State
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -380,46 +568,7 @@ const MusicLibraryPage = () => {
     duration: '',
     premiumOnly: false
   });
-
-  // Fetch music data
-  const { 
-    data: musicData, 
-    isLoading, 
-    error 
-  } = useQuery(
-    ['music', { 
-      q: searchQuery, 
-      sort: sortBy, 
-      filters,
-      page: 1,
-      limit: 50 
-    }],
-    () => musicService.searchMusic({
-      q: searchQuery,
-      sort: sortBy,
-      ...filters,
-      page: 1,
-      limit: 50
-    }),
-    {
-      keepPreviousData: true,
-      staleTime: 2 * 60 * 1000
-    }
-  );
-
-  // Fetch trending music
-  const { data: trendingData } = useQuery(
-    'trendingMusic',
-    () => musicService.getTrendingMusic(),
-    { staleTime: 5 * 60 * 1000 }
-  );
-
-  // Fetch featured music
-  const { data: featuredData } = useQuery(
-    'featuredMusic',
-    () => musicService.getFeaturedMusic(),
-    { staleTime: 10 * 60 * 1000 }
-  );
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle search
   const handleSearch = (e) => {
@@ -440,61 +589,91 @@ const MusicLibraryPage = () => {
       return;
     }
 
-    try {
-      await musicService.toggleLike(musicId);
-      setLikedSongs(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(musicId)) {
-          newSet.delete(musicId);
-        } else {
-          newSet.add(musicId);
-        }
-        return newSet;
-      });
-    } catch (error) {
-      console.error('Failed to toggle like:', error);
-    }
+    setLikedSongs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(musicId)) {
+        newSet.delete(musicId);
+      } else {
+        newSet.add(musicId);
+      }
+      return newSet;
+    });
   };
 
   // Filter music based on current filters
   const filteredMusic = useMemo(() => {
-    if (!musicData?.music) return [];
+    let results = [...mockMusicLibrary];
     
-    return musicData.music.filter(music => {
-      // Genre filter
-      if (filters.genres.length > 0 && !filters.genres.includes(music.genre)) {
-        return false;
-      }
-      
-      // Difficulty filter
-      if (filters.difficulties.length > 0 && !filters.difficulties.includes(music.difficulty.level)) {
-        return false;
-      }
-      
-      // Duration filter
-      if (filters.duration) {
+    // Search filter
+    if (searchQuery) {
+      results = results.filter(music => 
+        music.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        music.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        music.genre.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Genre filter
+    if (filters.genres.length > 0) {
+      results = results.filter(music => filters.genres.includes(music.genre));
+    }
+    
+    // Difficulty filter
+    if (filters.difficulties.length > 0) {
+      results = results.filter(music => filters.difficulties.includes(music.difficulty.level));
+    }
+    
+    // Duration filter
+    if (filters.duration) {
+      results = results.filter(music => {
         const duration = music.duration;
         switch (filters.duration) {
           case 'short':
-            if (duration > 180) return false;
-            break;
+            return duration <= 180;
           case 'medium':
-            if (duration <= 180 || duration > 300) return false;
-            break;
+            return duration > 180 && duration <= 300;
           case 'long':
-            if (duration <= 300) return false;
-            break;
+            return duration > 300;
+          default:
+            return true;
         }
+      });
+    }
+    
+    // Premium filter
+    if (filters.premiumOnly) {
+      results = results.filter(music => music.availability?.premium);
+    }
+    
+    // Sort results
+    results.sort((a, b) => {
+      switch (sortBy) {
+        case 'popularity':
+          return b.statistics.playCount - a.statistics.playCount;
+        case 'newest':
+          return b._id.localeCompare(a._id); // Mock newest based on ID
+        case 'difficulty':
+          const diffOrder = { easy: 1, medium: 2, hard: 3, expert: 4 };
+          return diffOrder[a.difficulty.level] - diffOrder[b.difficulty.level];
+        case 'duration':
+          return a.duration - b.duration;
+        default:
+          return 0;
       }
-      
-      // Premium filter
-      if (filters.premiumOnly && !music.availability?.premium) {
-        return false;
-      }
-      
-      return true;
     });
-  }, [musicData?.music, filters]);
+    
+    return results;
+  }, [searchQuery, filters, sortBy]);
+
+  // Get featured music
+  const featuredMusic = useMemo(() => {
+    return mockMusicLibrary.filter(music => music.featured).slice(0, 4);
+  }, []);
+
+  // Get trending music
+  const trendingMusic = useMemo(() => {
+    return mockMusicLibrary.filter(music => music.trending).slice(0, 4);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900">
@@ -586,14 +765,14 @@ const MusicLibraryPage = () => {
         {/* Main Content */}
         <div className="flex-1">
           {/* Featured Section */}
-          {!searchQuery && featuredData?.featured && (
+          {!searchQuery && featuredMusic.length > 0 && (
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
                 <Star className="w-5 h-5 mr-2 text-yellow-400" />
                 Featured
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {featuredData.featured.slice(0, 4).map(music => (
+                {featuredMusic.map(music => (
                   <MusicCard
                     key={music._id}
                     music={music}
@@ -607,19 +786,19 @@ const MusicLibraryPage = () => {
           )}
 
           {/* Trending Section */}
-          {!searchQuery && trendingData?.trending && (
+          {!searchQuery && trendingMusic.length > 0 && (
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2 text-green-400" />
                 Trending Now
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {trendingData.trending.slice(0, 4).map(item => (
+                {trendingMusic.map(music => (
                   <MusicCard
-                    key={item.music._id}
-                    music={item.music}
+                    key={music._id}
+                    music={music}
                     onLike={handleLike}
-                    isLiked={likedSongs.has(item.music._id)}
+                    isLiked={likedSongs.has(music._id)}
                     viewMode="grid"
                   />
                 ))}
@@ -645,15 +824,8 @@ const MusicLibraryPage = () => {
               </div>
             )}
 
-            {/* Error State */}
-            {error && (
-              <div className="text-center py-12">
-                <p className="text-gray-400">Failed to load music. Please try again.</p>
-              </div>
-            )}
-
             {/* Empty State */}
-            {!isLoading && !error && filteredMusic.length === 0 && (
+            {!isLoading && filteredMusic.length === 0 && (
               <div className="text-center py-12">
                 <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                 <p className="text-gray-400 mb-2">No music found</p>
@@ -662,7 +834,7 @@ const MusicLibraryPage = () => {
             )}
 
             {/* Music Grid/List */}
-            {!isLoading && !error && filteredMusic.length > 0 && (
+            {!isLoading && filteredMusic.length > 0 && (
               <div className={
                 viewMode === 'grid' 
                   ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 

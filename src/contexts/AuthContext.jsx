@@ -1,35 +1,22 @@
-// Authentication context and provider
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { tokenManager } from '../utils/tokenManager';
 import { toast } from 'react-hot-toast';
-import { authService } from '../services/authService';
-
-// Auth Context
 const AuthContext = createContext();
-
-// Auth Actions
 const AUTH_ACTIONS = {
   LOGIN_START: 'LOGIN_START',
   LOGIN_SUCCESS: 'LOGIN_SUCCESS',
   LOGIN_FAILURE: 'LOGIN_FAILURE',
   LOGOUT: 'LOGOUT',
-  REFRESH_TOKEN: 'REFRESH_TOKEN',
   UPDATE_USER: 'UPDATE_USER',
   SET_LOADING: 'SET_LOADING'
 };
-
-// Initial State
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   error: null,
   loginAttempts: 0,
   lastLoginTime: null
 };
-
-// Auth Reducer
 const authReducer = (state, action) => {
   switch (action.type) {
     case AUTH_ACTIONS.LOGIN_START:
@@ -38,7 +25,6 @@ const authReducer = (state, action) => {
         isLoading: true,
         error: null
       };
-
     case AUTH_ACTIONS.LOGIN_SUCCESS:
       return {
         ...state,
@@ -49,7 +35,6 @@ const authReducer = (state, action) => {
         loginAttempts: 0,
         lastLoginTime: new Date()
       };
-
     case AUTH_ACTIONS.LOGIN_FAILURE:
       return {
         ...state,
@@ -59,20 +44,11 @@ const authReducer = (state, action) => {
         error: action.payload,
         loginAttempts: state.loginAttempts + 1
       };
-
     case AUTH_ACTIONS.LOGOUT:
       return {
         ...initialState,
         isLoading: false
       };
-
-    case AUTH_ACTIONS.REFRESH_TOKEN:
-      return {
-        ...state,
-        user: action.payload.user,
-        isAuthenticated: true
-      };
-
     case AUTH_ACTIONS.UPDATE_USER:
       return {
         ...state,
@@ -81,7 +57,6 @@ const authReducer = (state, action) => {
           ...action.payload
         }
       };
-
     case AUTH_ACTIONS.SET_LOADING:
       return {
         ...state,
@@ -92,192 +67,187 @@ const authReducer = (state, action) => {
       return state;
   }
 };
-
-// Auth Provider Component
+const mockUsers = [
+  {
+    id: '1',
+    username: 'demo',
+    email: 'demo@bigcoinpiano.com',
+    password: 'password',
+    coins: {
+      available: 1234.56,
+      pending: 45.23,
+      total: 1279.79
+    },
+    statistics: {
+      level: 12,
+      experience: 2450,
+      totalGames: 89,
+      bestScore: 98765,
+      totalPlayTime: 15420,
+      accuracy: 87.5
+    },
+    subscriptions: {
+      premium: {
+        active: true,
+        expiresAt: new Date('2025-12-31')
+      }
+    },
+    kyc: {
+      status: 'verified'
+    },
+    role: 'user'
+  },
+  {
+    id: '2',
+    username: 'admin',
+    email: 'admin@bigcoinpiano.com',
+    password: 'admin123',
+    coins: {
+      available: 5000.00,
+      pending: 0,
+      total: 5000.00
+    },
+    statistics: {
+      level: 25,
+      experience: 10000,
+      totalGames: 500,
+      bestScore: 150000,
+      totalPlayTime: 50000,
+      accuracy: 95.0
+    },
+    role: 'admin'
+  }
+];
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const queryClient = useQueryClient();
-
-  // Check authentication status on app load
-  const { data: userData, isLoading: userLoading } = useQuery(
-    'currentUser',
-    authService.getCurrentUser,
-    {
-      enabled: !!tokenManager.getAccessToken(),
-      retry: false,
-      onSuccess: (user) => {
+  useEffect(() => {
+    const savedUser = localStorage.getItem('bigcoin_user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
           payload: { user }
         });
-      },
-      onError: () => {
-        tokenManager.clearTokens();
-        dispatch({ type: AUTH_ACTIONS.LOGOUT });
-      }
-    }
-  );
-
-  // Login Mutation
-  const loginMutation = useMutation(authService.login, {
-    onMutate: () => {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-    },
-    onSuccess: (data) => {
-      const { accessToken, refreshToken, user } = data;
-      tokenManager.setTokens(accessToken, refreshToken);
-      
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user }
-      });
-
-      toast.success(`Welcome back, ${user.username}!`);
-      queryClient.invalidateQueries();
-    },
-    onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Login failed';
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: errorMessage
-      });
-      toast.error(errorMessage);
-    }
-  });
-
-  // Register Mutation
-  const registerMutation = useMutation(authService.register, {
-    onMutate: () => {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-    },
-    onSuccess: (data) => {
-      const { token, user } = data;
-      tokenManager.setTokens(token);
-      
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user }
-      });
-
-      toast.success(`Welcome to BigCoin Piano, ${user.username}!`);
-      queryClient.invalidateQueries();
-    },
-    onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: errorMessage
-      });
-      toast.error(errorMessage);
-    }
-  });
-
-  // Logout Mutation
-  const logoutMutation = useMutation(authService.logout, {
-    onSuccess: () => {
-      tokenManager.clearTokens();
-      dispatch({ type: AUTH_ACTIONS.LOGOUT });
-      queryClient.clear();
-      toast.success('Logged out successfully');
-    },
-    onError: () => {
-      // Force logout even if API call fails
-      tokenManager.clearTokens();
-      dispatch({ type: AUTH_ACTIONS.LOGOUT });
-      queryClient.clear();
-    }
-  });
-
-  // Update Profile Mutation
-  const updateProfileMutation = useMutation(authService.updateProfile, {
-    onSuccess: (updatedUser) => {
-      dispatch({
-        type: AUTH_ACTIONS.UPDATE_USER,
-        payload: updatedUser
-      });
-      toast.success('Profile updated successfully');
-      queryClient.invalidateQueries('currentUser');
-    },
-    onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Update failed';
-      toast.error(errorMessage);
-    }
-  });
-
-  // Change Password Mutation
-  const changePasswordMutation = useMutation(authService.changePassword, {
-    onSuccess: () => {
-      toast.success('Password changed successfully');
-    },
-    onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Password change failed';
-      toast.error(errorMessage);
-    }
-  });
-
-  // Auto-refresh token
-  useEffect(() => {
-    const refreshToken = tokenManager.getRefreshToken();
-    if (!refreshToken) return;
-
-    const refreshInterval = setInterval(async () => {
-      try {
-        const response = await authService.refreshToken();
-        const { accessToken, refreshToken: newRefreshToken, user } = response;
-        
-        tokenManager.setTokens(accessToken, newRefreshToken);
-        dispatch({
-          type: AUTH_ACTIONS.REFRESH_TOKEN,
-          payload: { user }
-        });
       } catch (error) {
-        console.error('Token refresh failed:', error);
-        tokenManager.clearTokens();
-        dispatch({ type: AUTH_ACTIONS.LOGOUT });
-        queryClient.clear();
+        localStorage.removeItem('bigcoin_user');
       }
-    }, 25 * 60 * 1000); // Refresh every 25 minutes
-
-    return () => clearInterval(refreshInterval);
-  }, [queryClient]);
-
-  // Update loading state
-  useEffect(() => {
-    dispatch({
-      type: AUTH_ACTIONS.SET_LOADING,
-      payload: userLoading
-    });
-  }, [userLoading]);
-
-  // Auth Helper Functions
+    }
+    dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+  }, []);
   const login = async (credentials) => {
-    return loginMutation.mutateAsync(credentials);
-  };
+    dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
+    const user = mockUsers.find(u => 
+      u.email === credentials.email && u.password === credentials.password
+    );
+
+    if (user) {
+      const userToStore = { ...user };
+      delete userToStore.password; 
+      localStorage.setItem('bigcoin_user', JSON.stringify(userToStore));
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user: userToStore }
+      });
+      toast.success(`Welcome back, ${user.username}!`);
+      return userToStore;
+    } else {
+      const errorMessage = 'Invalid email or password';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: errorMessage
+      });
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
   const register = async (userData) => {
-    return registerMutation.mutateAsync(userData);
-  };
+    dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const existingUser = mockUsers.find(u => 
+      u.email === userData.email || u.username === userData.username
+    );
 
+    if (existingUser) {
+      const errorMessage = 'User already exists';
+      dispatch({
+        type: AUTH_ACTIONS.LOGIN_FAILURE,
+        payload: errorMessage
+      });
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+    const newUser = {
+      id: Date.now().toString(),
+      username: userData.username,
+      email: userData.email,
+      coins: {
+        available: 100,
+        pending: 0,
+        total: 100
+      },
+      statistics: {
+        level: 1,
+        experience: 0,
+        totalGames: 0,
+        bestScore: 0,
+        totalPlayTime: 0,
+        accuracy: 0
+      },
+      subscriptions: {
+        premium: {
+          active: false,
+          expiresAt: null
+        }
+      },
+      kyc: {
+        status: 'pending'
+      },
+      role: 'user'
+    };
+    mockUsers.push({ ...newUser, password: userData.password });
+    localStorage.setItem('bigcoin_user', JSON.stringify(newUser));
+    
+    dispatch({
+      type: AUTH_ACTIONS.LOGIN_SUCCESS,
+      payload: { user: newUser }
+    });
+    
+    toast.success(`Welcome to BigCoin Piano, ${newUser.username}! You received 100 bonus coins!`);
+    return newUser;
+  };
   const logout = async () => {
-    return logoutMutation.mutateAsync();
+    localStorage.removeItem('bigcoin_user');
+    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    toast.success('Logged out successfully');
   };
-
   const updateProfile = async (profileData) => {
-    return updateProfileMutation.mutateAsync(profileData);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const updatedUser = { ...state.user, ...profileData };
+    localStorage.setItem('bigcoin_user', JSON.stringify(updatedUser));
+    
+    dispatch({
+      type: AUTH_ACTIONS.UPDATE_USER,
+      payload: profileData
+    });
+    
+    toast.success('Profile updated successfully');
+    return updatedUser;
   };
-
   const changePassword = async (passwordData) => {
-    return changePasswordMutation.mutateAsync(passwordData);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    toast.success('Password changed successfully');
   };
-
   const checkAuth = () => {
-    return !!tokenManager.getAccessToken() && state.isAuthenticated;
+    return state.isAuthenticated;
   };
 
   const hasPermission = (permission) => {
     if (!state.user) return false;
     
-    // Check user level permissions
     const userLevel = state.user.statistics?.level || 1;
     const permissions = {
       'game.play': userLevel >= 1,
@@ -327,31 +297,23 @@ export const AuthProvider = ({ children }) => {
     return userLevel >= (featureRequirements[feature] || 1);
   };
 
-  // Context Value
   const value = {
-    // State
     ...state,
-    
-    // Actions
     login,
     register,
     logout,
     updateProfile,
     changePassword,
-    
-    // Helpers
     checkAuth,
     hasPermission,
     getBalanceInfo,
     getUserStats,
     isFeatureUnlocked,
-    
-    // Loading states
-    isLoggingIn: loginMutation.isLoading,
-    isRegistering: registerMutation.isLoading,
-    isLoggingOut: logoutMutation.isLoading,
-    isUpdatingProfile: updateProfileMutation.isLoading,
-    isChangingPassword: changePasswordMutation.isLoading
+    isLoggingIn: state.isLoading,
+    isRegistering: state.isLoading,
+    isLoggingOut: false,
+    isUpdatingProfile: false,
+    isChangingPassword: false
   };
 
   return (
@@ -361,7 +323,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom Hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -370,7 +331,6 @@ export const useAuth = () => {
   return context;
 };
 
-// HOC for components that require authentication
 export const withAuth = (Component) => {
   return function AuthenticatedComponent(props) {
     const { isAuthenticated, isLoading } = useAuth();
@@ -382,7 +342,6 @@ export const withAuth = (Component) => {
     }
     
     if (!isAuthenticated) {
-      // Instead of Navigate, redirect using window.location
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
@@ -393,7 +352,6 @@ export const withAuth = (Component) => {
   };
 };
 
-// Auth Status Hook for conditional rendering
 export const useAuthStatus = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
   

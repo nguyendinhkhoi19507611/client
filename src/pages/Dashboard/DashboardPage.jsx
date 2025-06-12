@@ -1,5 +1,5 @@
-// User dashboard page
-import React, { useState } from 'react';
+// User dashboard page with mock data
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -17,9 +17,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useQuery } from 'react-query';
 import Button from '../../components/UI/Button';
-import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import { formatNumber, formatTime } from '../../utils/formatters';
 
 const DashboardPage = () => {
@@ -27,75 +25,63 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
-  // Mock data - replace with actual API calls
-  const { data: dashboardData, isLoading } = useQuery(
-    ['dashboard', selectedPeriod],
-    () => ({
-      stats: {
-        totalCoins: 1234.56,
-        todayEarnings: 45.23,
-        weeklyEarnings: 312.89,
-        totalGames: 89,
-        bestScore: 98765,
-        currentLevel: 12,
-        currentExp: 2450,
-        nextLevelExp: 3000,
-        accuracy: 87.5,
-        totalPlayTime: 15420 // seconds
+  // Mock dashboard data
+  const dashboardData = useMemo(() => ({
+    stats: {
+      totalCoins: user?.coins?.available || 1234.56,
+      todayEarnings: 45.23,
+      weeklyEarnings: 312.89,
+      totalGames: user?.statistics?.totalGames || 89,
+      bestScore: user?.statistics?.bestScore || 98765,
+      currentLevel: user?.statistics?.level || 12,
+      currentExp: user?.statistics?.experience || 2450,
+      nextLevelExp: 3000,
+      accuracy: user?.statistics?.accuracy || 87.5,
+      totalPlayTime: user?.statistics?.totalPlayTime || 15420
+    },
+    recentGames: [
+      {
+        id: 1,
+        musicTitle: "Für Elise",
+        artist: "Beethoven",
+        score: 9500,
+        accuracy: 94.2,
+        coinsEarned: 12.5,
+        playedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        difficulty: 'medium'
       },
-      recentGames: [
-        {
-          id: 1,
-          musicTitle: "Für Elise",
-          artist: "Beethoven",
-          score: 9500,
-          accuracy: 94.2,
-          coinsEarned: 12.5,
-          playedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          difficulty: 'medium'
-        },
-        {
-          id: 2,
-          musicTitle: "Canon in D",
-          artist: "Pachelbel",
-          score: 8750,
-          accuracy: 89.1,
-          coinsEarned: 10.8,
-          playedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-          difficulty: 'hard'
-        },
-        {
-          id: 3,
-          musicTitle: "Moonlight Sonata",
-          artist: "Beethoven",
-          score: 7200,
-          accuracy: 76.5,
-          coinsEarned: 8.2,
-          playedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          difficulty: 'expert'
-        }
-      ],
-      achievements: [
-        { id: 1, name: "Perfect Score", description: "Achieve 100% accuracy", progress: 94, total: 100, unlocked: false },
-        { id: 2, name: "Speed Demon", description: "Complete 10 songs in expert mode", progress: 7, total: 10, unlocked: false },
-        { id: 3, name: "Coin Master", description: "Earn 1000 BigCoins", progress: 1234, total: 1000, unlocked: true }
-      ],
-      featured: [
-        { id: 1, title: "Classical Masters", count: 25, image: "🎼" },
-        { id: 2, title: "Popular Hits", count: 50, image: "🎵" },
-        { id: 3, title: "Movie Soundtracks", count: 30, image: "🎬" }
-      ]
-    }),
-    { staleTime: 5 * 60 * 1000 }
-  );
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading your dashboard..." />
-      </div>
-    );
-  }
+      {
+        id: 2,
+        musicTitle: "Canon in D",
+        artist: "Pachelbel",
+        score: 8750,
+        accuracy: 89.1,
+        coinsEarned: 10.8,
+        playedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
+        difficulty: 'hard'
+      },
+      {
+        id: 3,
+        musicTitle: "Moonlight Sonata",
+        artist: "Beethoven",
+        score: 7200,
+        accuracy: 76.5,
+        coinsEarned: 8.2,
+        playedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        difficulty: 'expert'
+      }
+    ],
+    achievements: [
+      { id: 1, name: "Perfect Score", description: "Achieve 100% accuracy", progress: 94, total: 100, unlocked: false },
+      { id: 2, name: "Speed Demon", description: "Complete 10 songs in expert mode", progress: 7, total: 10, unlocked: false },
+      { id: 3, name: "Coin Master", description: "Earn 1000 BigCoins", progress: user?.coins?.total || 1234, total: 1000, unlocked: true }
+    ],
+    featured: [
+      { id: 1, title: "Classical Masters", count: 25, image: "🎼" },
+      { id: 2, title: "Popular Hits", count: 50, image: "🎵" },
+      { id: 3, title: "Movie Soundtracks", count: 30, image: "🎬" }
+    ]
+  }), [user]);
 
   const stats = dashboardData?.stats || {};
   const levelProgress = (stats.currentExp / stats.nextLevelExp) * 100;

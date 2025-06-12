@@ -1,8 +1,7 @@
-// Main game page with piano interface
+// Main game page with piano interface (mock data version)
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from 'react-query';
 import { toast } from 'react-hot-toast';
 import { 
   Play, 
@@ -30,7 +29,6 @@ import Modal from '../../components/UI/Modal';
 import { useGame, GAME_STATES } from '../../contexts/GameContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAudio } from '../../contexts/AudioContext';
-import { musicService } from '../../services/musicService';
 import { formatTime, formatNumber } from '../../utils/formatters';
 
 // Game Settings Modal
@@ -159,7 +157,6 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
     <Modal isOpen={isOpen} onClose={onClose} title="Game Complete!" size="lg">
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50">
-          {/* Simple confetti effect */}
           {Array.from({ length: 50 }).map((_, i) => (
             <motion.div
               key={i}
@@ -304,7 +301,9 @@ const GamePage = () => {
     getGameProgress,
     isStarting,
     isEnding,
-    isClaiming
+    isClaiming,
+    getMusicById,
+    mockMusic
   } = useGame();
   
   const { volume, setVolume, isMuted, toggleMute } = useAudio();
@@ -314,26 +313,30 @@ const GamePage = () => {
   const [showResults, setShowResults] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [currentNotes, setCurrentNotes] = useState([]);
-  
-  // Refs
-  const gameTimerRef = useRef(null);
-  const audioContextRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch music data
-  const { data: music, isLoading: isMusicLoading } = useQuery(
-    ['music', musicId],
-    () => musicService.getMusicById(musicId),
-    {
-      enabled: !!musicId,
-      onSuccess: (data) => {
-        setMusic(data.music);
-      },
-      onError: (error) => {
-        toast.error('Failed to load music');
-        navigate('/music');
-      }
+  // Load music data
+  useEffect(() => {
+    if (musicId) {
+      setIsLoading(true);
+      // Simulate loading delay
+      setTimeout(() => {
+        const music = getMusicById(musicId);
+        if (music) {
+          setMusic(music);
+          // Generate notes for the current music
+          generateNotesForMusic(music);
+        } else {
+          toast.error('Music not found');
+          navigate('/music');
+        }
+        setIsLoading(false);
+      }, 1000);
+    } else {
+      // If no music ID, redirect to music library
+      navigate('/music');
     }
-  );
+  }, [musicId, getMusicById, setMusic, navigate]);
 
   // Handle game completion
   useEffect(() => {
@@ -345,6 +348,39 @@ const GamePage = () => {
   // Game progress tracking
   const progress = getGameProgress();
 
+  // Generate notes for gameplay
+  const generateNotesForMusic = useCallback((music) => {
+    if (!music?.sheet?.notes) {
+      // Generate random notes for demo
+      const notes = [];
+      const totalDuration = music.duration * 1000; // Convert to milliseconds
+      const noteInterval = 500; // Note every 500ms
+      
+      const possibleNotes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+      
+      for (let time = 1000; time < totalDuration; time += noteInterval) {
+        const randomNote = possibleNotes[Math.floor(Math.random() * possibleNotes.length)];
+        notes.push({
+          note: randomNote,
+          time: time,
+          duration: 400,
+          gameTime: time
+        });
+      }
+      
+      setCurrentNotes(notes);
+      return;
+    }
+    
+    // Convert music sheet to game notes
+    const gameNotes = music.sheet.notes.map(note => ({
+      ...note,
+      gameTime: note.time
+    }));
+    
+    setCurrentNotes(gameNotes);
+  }, []);
+
   // Start game handler
   const handleStartGame = useCallback(async () => {
     if (!currentMusic) {
@@ -354,25 +390,10 @@ const GamePage = () => {
 
     try {
       await startGame(currentMusic._id);
-      // Generate notes for the current music
-      generateNotesForMusic(currentMusic);
     } catch (error) {
       toast.error('Failed to start game');
     }
   }, [currentMusic, startGame]);
-
-  // Generate notes for gameplay (simplified)
-  const generateNotesForMusic = useCallback((music) => {
-    if (!music?.sheet?.notes) return;
-    
-    // Convert music sheet to game notes
-    const gameNotes = music.sheet.notes.map(note => ({
-      ...note,
-      gameTime: note.time // Convert to game time
-    }));
-    
-    setCurrentNotes(gameNotes);
-  }, []);
 
   // Pause/Resume game
   const handlePauseResume = useCallback(() => {
@@ -416,10 +437,10 @@ const GamePage = () => {
   }, []);
 
   // Loading state
-  if (isMusicLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" text="Loading music..." />
       </div>
     );
   }
