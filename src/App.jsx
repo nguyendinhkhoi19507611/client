@@ -7,7 +7,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 // Providers and Context
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { GameProvider } from './contexts/GameContext';
 import { AudioProvider } from './contexts/AudioContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -45,6 +45,67 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
+// App Loading Screen Component
+const AppLoadingScreen = () => (
+  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+    <div className="text-center">
+      <div className="relative">
+        {/* Piano Logo Animation */}
+        <div className="w-32 h-32 mx-auto mb-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl animate-pulse">
+            <div className="absolute inset-2 bg-white rounded-xl flex items-center justify-center">
+              <div className="w-16 h-12 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg relative overflow-hidden">
+                {/* Piano Keys */}
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-lg flex">
+                  {[...Array(7)].map((_, i) => (
+                    <div key={i} className="flex-1 border-r border-gray-300 last:border-r-0" />
+                  ))}
+                </div>
+                {/* Black Keys */}
+                <div className="absolute bottom-4 left-0 right-0 h-4 flex justify-around px-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="w-1 bg-gray-800 rounded-b" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Loading Text */}
+        <h1 className="text-4xl font-bold text-white mb-2 font-display">
+          BigCoin Piano
+        </h1>
+        <p className="text-blue-300 text-lg mb-6">
+          Mining the rhythm of success
+        </p>
+        
+        {/* Loading Spinner */}
+        <LoadingSpinner size="lg" className="mb-4" />
+        
+        {/* Loading Progress */}
+        <div className="w-64 mx-auto">
+          <div className="bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full animate-pulse w-3/4 transition-all duration-1000" />
+          </div>
+          <p className="text-sm text-gray-400 mt-2">Loading game assets...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 // Main App Component
 function App() {
@@ -157,66 +218,5 @@ function App() {
     </ErrorBoundary>
   );
 }
-
-// Admin Route Component
-const AdminRoute = ({ children }) => {
-  const { user } = React.useContext(AuthProvider);
-  
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return children;
-};
-
-// App Loading Screen Component
-const AppLoadingScreen = () => (
-  <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-    <div className="text-center">
-      <div className="relative">
-        {/* Piano Logo Animation */}
-        <div className="w-32 h-32 mx-auto mb-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl animate-pulse">
-            <div className="absolute inset-2 bg-white rounded-xl flex items-center justify-center">
-              <div className="w-16 h-12 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg relative overflow-hidden">
-                {/* Piano Keys */}
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-white rounded-b-lg flex">
-                  {[...Array(7)].map((_, i) => (
-                    <div key={i} className="flex-1 border-r border-gray-300 last:border-r-0" />
-                  ))}
-                </div>
-                {/* Black Keys */}
-                <div className="absolute bottom-4 left-0 right-0 h-4 flex justify-around px-1">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="w-1 bg-gray-800 rounded-b" />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Loading Text */}
-        <h1 className="text-4xl font-bold text-white mb-2 font-display">
-          BigCoin Piano
-        </h1>
-        <p className="text-blue-300 text-lg mb-6">
-          Mining the rhythm of success
-        </p>
-        
-        {/* Loading Spinner */}
-        <LoadingSpinner size="lg" className="mb-4" />
-        
-        {/* Loading Progress */}
-        <div className="w-64 mx-auto">
-          <div className="bg-gray-700 rounded-full h-2 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-full rounded-full animate-pulse w-3/4 transition-all duration-1000" />
-          </div>
-          <p className="text-sm text-gray-400 mt-2">Loading game assets...</p>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default App;

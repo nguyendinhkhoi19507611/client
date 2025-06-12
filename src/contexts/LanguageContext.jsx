@@ -562,3 +562,122 @@ const defaultTranslations = {
     }
   }
 };
+
+export const LanguageProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(languageReducer, {
+    ...initialState,
+    translations: defaultTranslations
+  });
+
+  const setLanguage = (language) => {
+    if (state.supportedLanguages.includes(language)) {
+      dispatch({ type: LANGUAGE_ACTIONS.SET_LANGUAGE, payload: language });
+      localStorage.setItem('language', language);
+    }
+  };
+
+  const getLanguageName = (langCode) => {
+    const names = {
+      en: 'English',
+      vi: 'Tiếng Việt'
+    };
+    return names[langCode] || langCode;
+  };
+
+  const t = (key, params = {}) => {
+    const keys = key.split('.');
+    let value = state.translations[state.currentLanguage];
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object') {
+        value = value[k];
+      } else {
+        break;
+      }
+    }
+    
+    if (typeof value !== 'string') {
+      // Fallback to English if translation not found
+      value = state.translations.en;
+      for (const k of keys) {
+        if (value && typeof value === 'object') {
+          value = value[k];
+        } else {
+          break;
+        }
+      }
+    }
+    
+    if (typeof value !== 'string') {
+      return key; // Return key if no translation found
+    }
+    
+    // Replace parameters
+    let result = value;
+    Object.keys(params).forEach(param => {
+      result = result.replace(`{{${param}}}`, params[param]);
+    });
+    
+    return result;
+  };
+
+  const formatRelativeTime = (date) => {
+    const now = new Date();
+    const past = new Date(date);
+    const diffInSeconds = Math.floor((now - past) / 1000);
+    
+    if (state.currentLanguage === 'vi') {
+      if (diffInSeconds < 60) return 'Vừa xong';
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+      if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+      if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} tháng trước`;
+      return `${Math.floor(diffInSeconds / 31536000)} năm trước`;
+    } else {
+      if (diffInSeconds < 60) return 'Just now';
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+      if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+      if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+      return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+    }
+  };
+
+  // Load saved language on mount
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage && state.supportedLanguages.includes(savedLanguage)) {
+      dispatch({ type: LANGUAGE_ACTIONS.SET_LANGUAGE, payload: savedLanguage });
+    }
+  }, [state.supportedLanguages]);
+
+  const value = {
+    ...state,
+    setLanguage,
+    getLanguageName,
+    t,
+    formatRelativeTime
+  };
+
+  return (
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
+
+// Alias for useLanguage
+export const useTranslation = () => {
+  const { t, ...rest } = useLanguage();
+  return { t, ...rest };
+};
+
+export default LanguageContext;

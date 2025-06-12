@@ -1,5 +1,5 @@
-// Main game page with piano interface (mock data version)
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+// Main game page with simplified piano interface
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -12,7 +12,6 @@ import {
   Settings, 
   Trophy,
   Coins,
-  Target,
   Timer,
   ArrowLeft,
   Home
@@ -44,44 +43,6 @@ const GameSettingsModal = ({ isOpen, onClose, onSave }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Game Settings">
       <div className="space-y-6">
-        {/* Difficulty */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Difficulty
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {['easy', 'medium', 'hard', 'expert'].map((level) => (
-              <button
-                key={level}
-                onClick={() => setSettings(prev => ({ ...prev, difficulty: level }))}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  settings.difficulty === level
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {level.charAt(0).toUpperCase() + level.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Speed */}
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Speed: {settings.speed}x
-          </label>
-          <input
-            type="range"
-            min="0.5"
-            max="2"
-            step="0.1"
-            value={settings.speed}
-            onChange={(e) => setSettings(prev => ({ ...prev, speed: parseFloat(e.target.value) }))}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
-
         {/* Audio Settings */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -144,10 +105,10 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
   }, [isOpen, isGameCompleted]);
 
   const getPerformanceGrade = () => {
-    if (stats.accuracy >= 95) return { grade: 'S', color: 'text-yellow-400', desc: 'Perfect!' };
-    if (stats.accuracy >= 90) return { grade: 'A', color: 'text-green-400', desc: 'Excellent!' };
-    if (stats.accuracy >= 80) return { grade: 'B', color: 'text-blue-400', desc: 'Great!' };
-    if (stats.accuracy >= 70) return { grade: 'C', color: 'text-orange-400', desc: 'Good!' };
+    if (score.current >= 1000) return { grade: 'S', color: 'text-yellow-400', desc: 'Perfect!' };
+    if (score.current >= 800) return { grade: 'A', color: 'text-green-400', desc: 'Excellent!' };
+    if (score.current >= 600) return { grade: 'B', color: 'text-blue-400', desc: 'Great!' };
+    if (score.current >= 400) return { grade: 'C', color: 'text-orange-400', desc: 'Good!' };
     return { grade: 'D', color: 'text-red-400', desc: 'Keep trying!' };
   };
 
@@ -203,16 +164,16 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
             <div className="text-sm text-gray-400">Score</div>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-green-400">{stats.accuracy.toFixed(1)}%</div>
-            <div className="text-sm text-gray-400">Accuracy</div>
+            <div className="text-2xl font-bold text-green-400">{stats.totalKeys}</div>
+            <div className="text-sm text-gray-400">Keys Pressed</div>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-purple-400">{score.maxCombo}</div>
             <div className="text-sm text-gray-400">Max Combo</div>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-400">{stats.perfectHits}</div>
-            <div className="text-sm text-gray-400">Perfect Hits</div>
+            <div className="text-2xl font-bold text-yellow-400">{stats.keysPerMinute}</div>
+            <div className="text-sm text-gray-400">Keys/Min</div>
           </div>
         </div>
 
@@ -302,8 +263,7 @@ const GamePage = () => {
     isStarting,
     isEnding,
     isClaiming,
-    getMusicById,
-    mockMusic
+    getMusicById
   } = useGame();
   
   const { volume, setVolume, isMuted, toggleMute } = useAudio();
@@ -311,8 +271,6 @@ const GamePage = () => {
   // Local state
   const [showSettings, setShowSettings] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-  const [currentNotes, setCurrentNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load music data
@@ -324,8 +282,6 @@ const GamePage = () => {
         const music = getMusicById(musicId);
         if (music) {
           setMusic(music);
-          // Generate notes for the current music
-          generateNotesForMusic(music);
         } else {
           toast.error('Music not found');
           navigate('/music');
@@ -347,39 +303,6 @@ const GamePage = () => {
 
   // Game progress tracking
   const progress = getGameProgress();
-
-  // Generate notes for gameplay
-  const generateNotesForMusic = useCallback((music) => {
-    if (!music?.sheet?.notes) {
-      // Generate random notes for demo
-      const notes = [];
-      const totalDuration = music.duration * 1000; // Convert to milliseconds
-      const noteInterval = 500; // Note every 500ms
-      
-      const possibleNotes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
-      
-      for (let time = 1000; time < totalDuration; time += noteInterval) {
-        const randomNote = possibleNotes[Math.floor(Math.random() * possibleNotes.length)];
-        notes.push({
-          note: randomNote,
-          time: time,
-          duration: 400,
-          gameTime: time
-        });
-      }
-      
-      setCurrentNotes(notes);
-      return;
-    }
-    
-    // Convert music sheet to game notes
-    const gameNotes = music.sheet.notes.map(note => ({
-      ...note,
-      gameTime: note.time
-    }));
-    
-    setCurrentNotes(gameNotes);
-  }, []);
 
   // Start game handler
   const handleStartGame = useCallback(async () => {
@@ -430,10 +353,10 @@ const GamePage = () => {
     handleStartGame();
   }, [handleStartGame]);
 
-  // Keystroke handler
+  // Keystroke handler - simplified scoring
   const handleKeystroke = useCallback((keystrokeData) => {
-    // This is handled by the GamePiano component
-    console.log('Keystroke:', keystrokeData);
+    // Just add the points from the keystroke
+    console.log('Key pressed:', keystrokeData.key, 'Points:', keystrokeData.points);
   }, []);
 
   // Loading state
@@ -523,8 +446,8 @@ const GamePage = () => {
             <div className="text-xs text-gray-400">Combo</div>
           </div>
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
-            <div className="text-2xl font-bold text-purple-400">{stats.accuracy.toFixed(1)}%</div>
-            <div className="text-xs text-gray-400">Accuracy</div>
+            <div className="text-2xl font-bold text-purple-400">{stats.totalKeys}</div>
+            <div className="text-xs text-gray-400">Keys Hit</div>
           </div>
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
             <div className="text-2xl font-bold text-yellow-400">{formatTime(progress.currentTime)}</div>
@@ -599,20 +522,16 @@ const GamePage = () => {
         <div className="max-w-6xl mx-auto">
           <GamePiano
             onKeystroke={handleKeystroke}
-            currentNotes={currentNotes}
             gameState={gameState}
-            showGuide={showGuide}
+            showGuide={true}
           />
         </div>
 
         {/* Help Text */}
         <div className="text-center mt-6">
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className="text-gray-400 hover:text-white transition-colors text-sm"
-          >
-            {showGuide ? 'Hide' : 'Show'} keyboard guide
-          </button>
+          <p className="text-gray-400 text-sm">
+            Use keyboard keys A-L to play piano and earn points!
+          </p>
         </div>
       </div>
 

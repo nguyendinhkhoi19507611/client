@@ -1,13 +1,11 @@
 // client/src/components/UI/ErrorFallback.jsx - Error boundary fallback component
 import React from 'react';
 import { RefreshCw, Home, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const ErrorFallback = ({ error, resetErrorBoundary }) => {
-  const navigate = useNavigate();
-
   const handleGoHome = () => {
-    navigate('/');
+    // Use window.location instead of useNavigate since this might be outside Router context
+    window.location.href = '/';
     if (resetErrorBoundary) {
       resetErrorBoundary();
     }
@@ -15,6 +13,13 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
 
   const handleReload = () => {
     window.location.reload();
+  };
+
+  const handleGoBack = () => {
+    window.history.back();
+    if (resetErrorBoundary) {
+      resetErrorBoundary();
+    }
   };
 
   return (
@@ -62,6 +67,13 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
           >
             <Home className="w-4 h-4 mr-2" />
             Go to Home
+          </button>
+          
+          <button
+            onClick={handleGoBack}
+            className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+          >
+            Go Back
           </button>
           
           <button

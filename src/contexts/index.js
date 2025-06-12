@@ -1,4 +1,4 @@
-export { useAuth, AuthProvider, withAuth, useAuthStatus } from './AuthContext';
+export { useAuth, AuthProvider } from './AuthContext';
 export { useGame, GameProvider, GAME_STATES } from './GameContext';
 export { useAudio, AudioProvider } from './AudioContext';
 export { useLanguage, LanguageProvider, useTranslation } from './LanguageContext';
