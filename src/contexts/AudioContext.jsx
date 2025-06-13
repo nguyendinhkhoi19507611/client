@@ -13,7 +13,8 @@ const AUDIO_ACTIONS = {
   SET_PLAYING: 'SET_PLAYING',
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
-  SET_INITIALIZED: 'SET_INITIALIZED'
+  SET_INITIALIZED: 'SET_INITIALIZED',
+  SET_BACKGROUND_MUSIC: 'SET_BACKGROUND_MUSIC'
 };
 
 // Initial State
@@ -24,7 +25,8 @@ const initialState = {
   isLoading: false,
   isInitialized: false,
   error: null,
-  currentNotes: new Set()
+  currentNotes: new Set(),
+  backgroundMusic: null
 };
 
 // Audio Reducer
@@ -68,6 +70,12 @@ const audioReducer = (state, action) => {
         isLoading: false
       };
 
+    case AUDIO_ACTIONS.SET_BACKGROUND_MUSIC:
+      return {
+        ...state,
+        backgroundMusic: action.payload
+      };
+
     default:
       return state;
   }
@@ -81,6 +89,7 @@ export const AudioProvider = ({ children }) => {
   const synthRef = React.useRef(null);
   const reverbRef = React.useRef(null);
   const activeNotesRef = React.useRef(new Map());
+  const backgroundPlayerRef = React.useRef(null);
 
   // Initialize audio engine
   useEffect(() => {
@@ -107,8 +116,12 @@ export const AudioProvider = ({ children }) => {
           }
         }).connect(reverbRef.current);
 
+        // Create background music player
+        backgroundPlayerRef.current = new Tone.Player().toDestination();
+
         // Set initial volume
         synthRef.current.volume.value = Tone.gainToDb(state.volume / 100);
+        backgroundPlayerRef.current.volume.value = Tone.gainToDb(state.volume / 100);
 
         dispatch({ type: AUDIO_ACTIONS.SET_INITIALIZED, payload: true });
       } catch (error) {
@@ -127,6 +140,9 @@ export const AudioProvider = ({ children }) => {
       if (reverbRef.current) {
         reverbRef.current.dispose();
       }
+      if (backgroundPlayerRef.current) {
+        backgroundPlayerRef.current.dispose();
+      }
     };
   }, []);
 
@@ -135,6 +151,10 @@ export const AudioProvider = ({ children }) => {
     if (synthRef.current) {
       const volumeValue = state.isMuted ? -Infinity : Tone.gainToDb(state.volume / 100);
       synthRef.current.volume.value = volumeValue;
+    }
+    if (backgroundPlayerRef.current) {
+      const volumeValue = state.isMuted ? -Infinity : Tone.gainToDb(state.volume / 100);
+      backgroundPlayerRef.current.volume.value = volumeValue;
     }
   }, [state.volume, state.isMuted]);
 
@@ -315,6 +335,40 @@ export const AudioProvider = ({ children }) => {
     };
   }, [state]);
 
+  // Play background music
+  const playBackgroundMusic = useCallback(async (url) => {
+    if (!state.isInitialized || !backgroundPlayerRef.current) return;
+
+    try {
+      // Start Tone.js context if needed
+      if (Tone.context.state !== 'running') {
+        await Tone.start();
+      }
+
+      // Stop current music if playing
+      if (backgroundPlayerRef.current.state === 'started') {
+        backgroundPlayerRef.current.stop();
+      }
+
+      // Load and play new music
+      await backgroundPlayerRef.current.load(url);
+      backgroundPlayerRef.current.start();
+      dispatch({ type: AUDIO_ACTIONS.SET_BACKGROUND_MUSIC, payload: url });
+
+    } catch (error) {
+      console.error('Failed to play background music:', error);
+      dispatch({ type: AUDIO_ACTIONS.SET_ERROR, payload: error.message });
+    }
+  }, [state.isInitialized]);
+
+  // Stop background music
+  const stopBackgroundMusic = useCallback(() => {
+    if (backgroundPlayerRef.current) {
+      backgroundPlayerRef.current.stop();
+      dispatch({ type: AUDIO_ACTIONS.SET_BACKGROUND_MUSIC, payload: null });
+    }
+  }, []);
+
   // Context value
   const value = {
     // State
@@ -330,6 +384,8 @@ export const AudioProvider = ({ children }) => {
     playMelody,
     loadAudioFile,
     applyEffect,
+    playBackgroundMusic,
+    stopBackgroundMusic,
     
     // Getters
     getAudioInfo,

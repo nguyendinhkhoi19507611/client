@@ -3,6 +3,8 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback } 
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
+import defaultMusicFile from '../assets/defaultmusic.mp3';
+import { useAudio } from './AudioContext';
 
 const GameContext = createContext();
 
@@ -84,7 +86,7 @@ const defaultMusic = {
   artist: 'BigCoin Piano',
   genre: 'practice',
   duration: 300, // 5 phút
-  audioUrl: '../assets/defaultmusic.mp3',
+  audioUrl: defaultMusicFile,
   statistics: {
     playCount: 0,
     averageScore: 0
@@ -356,6 +358,7 @@ export const GameProvider = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const { user, updateProfile } = useAuth();
   const { t } = useLanguage();
+  const { playBackgroundMusic, stopBackgroundMusic } = useAudio();
 
   // Start game function - sử dụng nhạc mặc định nếu không có nhạc được chọn
   const startGame = useCallback(async (musicId = null, settings = {}) => {
@@ -398,8 +401,16 @@ export const GameProvider = ({ children }) => {
       payload: { sessionId }
     });
 
+    // Phát nhạc nền
+    try {
+      await playBackgroundMusic(selectedMusic.audioUrl);
+    } catch (error) {
+      console.error('Failed to play background music:', error);
+      toast.error(t('errors.audioPlaybackFailed'));
+    }
+
     toast.success(t('game.startGame'));
-  }, [user, state.gameSettings, t]);
+  }, [user, state.gameSettings, t, playBackgroundMusic]);
 
   const pauseGame = useCallback(() => {
     if (state.gameState === GAME_STATES.PLAYING) {
@@ -419,6 +430,9 @@ export const GameProvider = ({ children }) => {
     if (state.sessionId && state.gameState === GAME_STATES.PLAYING) {
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Dừng nhạc nền khi kết thúc game
+      stopBackgroundMusic();
+      
       dispatch({
         type: GAME_ACTIONS.END_GAME,
         payload: {}
@@ -426,7 +440,7 @@ export const GameProvider = ({ children }) => {
 
       toast.success(t('game.gameComplete'));
     }
-  }, [state.sessionId, state.gameState, t]);
+  }, [state.sessionId, state.gameState, t, stopBackgroundMusic]);
 
   // Xử lý phím đơn giản - chỉ cộng điểm cố định mỗi lần nhấn
   const processKeystroke = useCallback(async (keystrokeData) => {
