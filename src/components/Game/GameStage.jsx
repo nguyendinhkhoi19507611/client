@@ -80,16 +80,18 @@ const Spotlight = ({ x = 50, y = 50, size = 300, color = 'white', intensity = 0.
   );
 };
 
-// Dancing Character Component - đơn giản hóa
+// Dancing Character Component - Enhanced with combo animations
 const DancingCharacter = ({ 
   imageSrc, 
   position, 
   isPlaying, 
   lastKeystrokeTime,
+  comboSpeed = 1, // Add combo speed parameter
   className = '' 
 }) => {
   const [isDancing, setIsDancing] = useState(false);
   const [idleTimer, setIdleTimer] = useState(null);
+  const [jumpHeight, setJumpHeight] = useState(0);
   
   // Check if character should be dancing based on recent activity
   useEffect(() => {
@@ -102,6 +104,9 @@ const DancingCharacter = ({
     if (lastKeystrokeTime) {
       setIsDancing(true);
       
+      // Increase jump height based on combo speed
+      setJumpHeight(Math.min(30, comboSpeed * 10));
+      
       // Clear existing timer
       if (idleTimer) {
         clearTimeout(idleTimer);
@@ -110,6 +115,7 @@ const DancingCharacter = ({
       // Set new timer to stop dancing after 3 seconds of inactivity
       const newTimer = setTimeout(() => {
         setIsDancing(false);
+        setJumpHeight(0);
       }, 3000);
       
       setIdleTimer(newTimer);
@@ -120,11 +126,11 @@ const DancingCharacter = ({
         clearTimeout(idleTimer);
       }
     };
-  }, [lastKeystrokeTime, isPlaying]);
+  }, [lastKeystrokeTime, isPlaying, comboSpeed]);
   
   const getDanceAnimation = () => {
     if (!isDancing || !isPlaying) return 'idle';
-    return 'dancing';
+    return comboSpeed >= 2 ? 'excitedDancing' : 'dancing';
   };
   
   const danceVariants = {
@@ -138,7 +144,21 @@ const DancingCharacter = ({
       y: [0, -10, 0, -6, 0],
       rotate: [0, 3, -3, 2, 0],
       scale: [1, 1.05, 1, 1.02, 1],
-      transition: { duration: 1, repeat: Infinity, ease: 'easeInOut' }
+      transition: { 
+        duration: 1, 
+        repeat: Infinity, 
+        ease: 'easeInOut'
+      }
+    },
+    excitedDancing: {
+      y: [0, -jumpHeight, 0, -(jumpHeight * 0.6), 0],
+      rotate: [0, 5, -5, 3, 0],
+      scale: [1, 1.1, 1, 1.05, 1],
+      transition: { 
+        duration: 0.8 / Math.min(2, comboSpeed), 
+        repeat: Infinity, 
+        ease: 'easeInOut'
+      }
     }
   };
   
@@ -154,35 +174,69 @@ const DancingCharacter = ({
       animate={getDanceAnimation()}
     >
       <div className="relative">
-        {/* Character Image */}
-        <img
+        {/* Character Image with glow effect */}
+        <motion.img
           src={imageSrc}
           alt="Dancing character"
-          className="w-24 h-32 object-contain drop-shadow-2xl"
+          className="w-24 h-32 object-contain"
           style={{
-            filter: `brightness(${isDancing ? 1.1 : 0.9})`
+            filter: `brightness(${isDancing ? 1.2 : 0.9}) drop-shadow(0 0 ${Math.min(8, comboSpeed * 3)}px rgba(255, 255, 255, 0.8))`
+          }}
+          animate={{
+            scale: isDancing ? [1, 1.02, 1] : 1,
+            transition: { duration: 0.5, repeat: Infinity }
           }}
         />
         
-        {/* Musical notes animation - only when dancing */}
+        {/* Musical notes animation - enhanced with combo speed */}
+        {isDancing && (
+          <AnimatePresence>
+            {[...Array(Math.min(3, Math.ceil(comboSpeed)))].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 0, scale: 0 }}
+                animate={{ 
+                  opacity: [0, 1, 0], 
+                  y: -40 - (i * 10), 
+                  x: (i % 2 === 0 ? 10 : -10),
+                  scale: [0, 1, 1.2],
+                  rotate: [0, 10, -10, 0]
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ 
+                  duration: 1.5 / Math.min(2, comboSpeed), 
+                  repeat: Infinity, 
+                  repeatDelay: 0.2 + (i * 0.1)
+                }}
+                className="absolute -top-8 text-yellow-400 text-lg"
+                style={{
+                  left: `${50 + (i * 15)}%`,
+                  filter: `drop-shadow(0 0 5px rgba(255, 215, 0, 0.6))`
+                }}
+              >
+                {['♪', '♫', '♬'][i % 3]}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+
+        {/* Ground reflection effect */}
         {isDancing && (
           <motion.div
-            initial={{ opacity: 0, y: 0, scale: 0 }}
-            animate={{ 
-              opacity: [0, 1, 0], 
-              y: -30, 
-              scale: [0, 1, 1.2],
-              rotate: [0, 10, -10, 0]
+            className="absolute bottom-0 left-1/2 w-16 h-4 -translate-x-1/2"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, transparent 70%)',
+              transform: 'scaleY(0.3)'
             }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity, 
-              repeatDelay: 1 + Math.random() 
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
+              scale: [0.8, 1, 0.8]
             }}
-            className="absolute -top-8 -right-2 text-yellow-400 text-lg"
-          >
-            {['♪', '♫', '♬'][Math.floor(Math.random() * 3)]}
-          </motion.div>
+            transition={{
+              duration: 0.8 / Math.min(2, comboSpeed),
+              repeat: Infinity
+            }}
+          />
         )}
       </div>
     </motion.div>
@@ -402,6 +456,7 @@ const GameStage = ({ className = '' }) => {
           position={character.position}
           isPlaying={isGameActive()}
           lastKeystrokeTime={lastKeystrokeTime}
+          comboSpeed={isGameActive() ? 1.5 : 1}
           className={`character-${index + 1}`}
         />
       ))}

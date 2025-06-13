@@ -46,11 +46,16 @@ const WhitePianoKey = ({
 }) => {
   const keyRef = useRef(null);
   const [localPressed, setLocalPressed] = useState(false);
+  const [pressIntensity, setPressIntensity] = useState(0);
 
   useEffect(() => {
     if (isPressed && !localPressed) {
       setLocalPressed(true);
-      setTimeout(() => setLocalPressed(false), 150);
+      setPressIntensity(1);
+      setTimeout(() => {
+        setLocalPressed(false);
+        setPressIntensity(0);
+      }, 150);
     }
   }, [isPressed, localPressed]);
 
@@ -87,9 +92,9 @@ const WhitePianoKey = ({
       ref={keyRef}
       className={clsx(
         'relative select-none cursor-pointer transition-all duration-100 border-r border-gray-300 last:border-r-0',
-        'flex-1 h-32 bg-white hover:bg-gray-50 rounded-b-lg',
+        'flex-1 h-32 bg-white hover:bg-gray-50 rounded-b-lg overflow-hidden',
         {
-          'bg-blue-500 text-white shadow-lg': isPressed || localPressed,
+          'bg-blue-500 text-white': isPressed || localPressed,
           'opacity-50 cursor-not-allowed': disabled
         }
       )}
@@ -123,15 +128,65 @@ const WhitePianoKey = ({
         {keyData.note}
       </div>
 
-      {/* Press Effect */}
-      {(isPressed || localPressed) && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-blue-400/20 rounded-b-lg pointer-events-none"
-        />
-      )}
+      {/* Press Effect with Light */}
+      <AnimatePresence>
+        {(isPressed || localPressed) && (
+          <>
+            {/* Ripple Effect */}
+            <motion.div
+              initial={{ scale: 0.2, opacity: 0.8 }}
+              animate={{ scale: 1.5, opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="absolute inset-0 bg-white rounded-full pointer-events-none"
+              style={{
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            />
+            
+            {/* Glow Effect */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.8 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at 50% 0%, rgb(59, 130, 246) 0%, transparent 70%)`,
+                filter: 'blur(4px)'
+              }}
+            />
+            
+            {/* Sparkle Effects */}
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ 
+                  opacity: 0,
+                  scale: 0,
+                  x: (i - 1) * 20,
+                  y: 20
+                }}
+                animate={{ 
+                  opacity: [0, 1, 0],
+                  scale: [0, 1, 0],
+                  y: [-10, -30],
+                }}
+                transition={{
+                  duration: 0.5,
+                  delay: i * 0.1
+                }}
+                className="absolute w-2 h-2 bg-white rounded-full"
+                style={{
+                  left: `${30 + (i * 20)}%`,
+                  filter: 'blur(1px)'
+                }}
+              />
+            ))}
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
@@ -147,11 +202,16 @@ const BlackPianoKey = ({
 }) => {
   const keyRef = useRef(null);
   const [localPressed, setLocalPressed] = useState(false);
+  const [pressIntensity, setPressIntensity] = useState(0);
 
   useEffect(() => {
     if (isPressed && !localPressed) {
       setLocalPressed(true);
-      setTimeout(() => setLocalPressed(false), 150);
+      setPressIntensity(1);
+      setTimeout(() => {
+        setLocalPressed(false);
+        setPressIntensity(0);
+      }, 150);
     }
   }, [isPressed, localPressed]);
 
@@ -192,15 +252,15 @@ const BlackPianoKey = ({
       ref={keyRef}
       className={clsx(
         'absolute select-none cursor-pointer transition-all duration-100 z-10',
-        'w-8 h-20 bg-gray-900 hover:bg-gray-800 rounded-b-md shadow-lg',
+        'w-8 h-20 bg-gray-900 hover:bg-gray-800 rounded-b-md overflow-hidden',
         {
-          'bg-blue-600 shadow-xl': isPressed || localPressed,
+          'bg-blue-600': isPressed || localPressed,
           'opacity-50 cursor-not-allowed': disabled
         }
       )}
       style={{
         left: `${leftPosition}%`,
-        transform: 'translateX(-50%)'
+        marginLeft: '-1rem'
       }}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
@@ -208,39 +268,67 @@ const BlackPianoKey = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       animate={{
-        y: isPressed || localPressed ? 1 : 0,
+        y: isPressed || localPressed ? 2 : 0,
         boxShadow: isPressed || localPressed ? 
           'inset 0 2px 6px rgba(0,0,0,0.4)' : 
-          '0 4px 8px rgba(0,0,0,0.3)'
+          '0 1px 3px rgba(0,0,0,0.2)'
       }}
       transition={{ duration: 0.1, ease: 'easeOut' }}
-      whileHover={!disabled ? { scale: 1.05 } : {}}
+      whileHover={!disabled ? { scale: 1.02 } : {}}
     >
       {/* Key Label */}
       <div className={clsx(
-        'absolute top-1 left-1/2 transform -translate-x-1/2 text-xs font-bold pointer-events-none',
-        isPressed || localPressed ? 'text-white' : 'text-gray-300'
+        'absolute top-2 left-1/2 transform -translate-x-1/2 text-xs font-bold pointer-events-none',
+        'text-gray-300'
       )}>
         {keyData.key}
       </div>
 
       {/* Note Label */}
       <div className={clsx(
-        'absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs font-mono pointer-events-none',
-        isPressed || localPressed ? 'text-blue-100' : 'text-gray-400'
+        'absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs font-mono pointer-events-none',
+        'text-gray-400'
       )}>
         {keyData.note}
       </div>
 
-      {/* Press Effect */}
-      {(isPressed || localPressed) && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-blue-400/30 rounded-b-md pointer-events-none"
-        />
-      )}
+      {/* Press Effect with Light */}
+      <AnimatePresence>
+        {(isPressed || localPressed) && (
+          <>
+            {/* Glow Effect */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(circle at 50% 0%, rgb(37, 99, 235) 0%, transparent 80%)`,
+                filter: 'blur(3px)'
+              }}
+            />
+            
+            {/* Sparkle Effect */}
+            <motion.div
+              initial={{ 
+                opacity: 0,
+                scale: 0,
+                y: 10
+              }}
+              animate={{ 
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0],
+                y: [-5, -15],
+              }}
+              transition={{ duration: 0.4 }}
+              className="absolute w-2 h-2 left-1/2 -translate-x-1/2 bg-blue-200 rounded-full"
+              style={{
+                filter: 'blur(1px)'
+              }}
+            />
+          </>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
