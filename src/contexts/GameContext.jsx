@@ -84,7 +84,7 @@ const defaultMusic = {
   artist: 'BigCoin Piano',
   genre: 'practice',
   duration: 300, // 5 phút
-  audioUrl: '../../public/defaultmusic.mp3',
+  audioUrl: '../assets/defaultmusic.mp3',
   statistics: {
     playCount: 0,
     averageScore: 0
