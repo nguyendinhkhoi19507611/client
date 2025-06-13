@@ -1,4 +1,4 @@
-// Main game page with simplified piano interface
+// src/pages/Game/GamePage.jsx - Cập nhật cho nhạc mặc định
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -14,7 +14,8 @@ import {
   Coins,
   Timer,
   ArrowLeft,
-  Home
+  Home,
+  Music
 } from 'lucide-react';
 
 // Components
@@ -92,7 +93,7 @@ const GameSettingsModal = ({ isOpen, onClose, onSave }) => {
   );
 };
 
-// Game Results Modal
+// Game Results Modal (loại bỏ thông tin combo)
 const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
   const { score, stats, rewards, isGameCompleted, isClaiming } = useGame();
   const [showConfetti, setShowConfetti] = useState(false);
@@ -157,7 +158,7 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
           <p className="text-xl text-gray-300">{performance.desc}</p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Loại bỏ combo */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-gray-800 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-blue-400">{formatNumber(score.current)}</div>
@@ -168,8 +169,8 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
             <div className="text-sm text-gray-400">Keys Pressed</div>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-purple-400">{score.maxCombo}</div>
-            <div className="text-sm text-gray-400">Max Combo</div>
+            <div className="text-2xl font-bold text-purple-400">{stats.accuracy}%</div>
+            <div className="text-sm text-gray-400">Accuracy</div>
           </div>
           <div className="bg-gray-800 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-yellow-400">{stats.keysPerMinute}</div>
@@ -263,7 +264,8 @@ const GamePage = () => {
     isStarting,
     isEnding,
     isClaiming,
-    getMusicById
+    getMusicById,
+    defaultMusic
   } = useGame();
   
   const { volume, setVolume, isMuted, toggleMute } = useAudio();
@@ -271,11 +273,11 @@ const GamePage = () => {
   // Local state
   const [showSettings, setShowSettings] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Load music data
+  // Load music data hoặc sử dụng nhạc mặc định
   useEffect(() => {
-    if (musicId) {
+    if (musicId && musicId !== 'default') {
       setIsLoading(true);
       // Simulate loading delay
       setTimeout(() => {
@@ -283,16 +285,16 @@ const GamePage = () => {
         if (music) {
           setMusic(music);
         } else {
-          toast.error('Music not found');
-          navigate('/music');
+          toast.error('Music not found, using default music');
+          setMusic(defaultMusic);
         }
         setIsLoading(false);
       }, 1000);
     } else {
-      // If no music ID, redirect to music library
-      navigate('/music');
+      // Sử dụng nhạc mặc định
+      setMusic(defaultMusic);
     }
-  }, [musicId, getMusicById, setMusic, navigate]);
+  }, [musicId, getMusicById, setMusic, defaultMusic]);
 
   // Handle game completion
   useEffect(() => {
@@ -304,19 +306,14 @@ const GamePage = () => {
   // Game progress tracking
   const progress = getGameProgress();
 
-  // Start game handler
+  // Start game handler - không cần music ID vì đã có nhạc mặc định
   const handleStartGame = useCallback(async () => {
-    if (!currentMusic) {
-      toast.error('Please select a song first');
-      return;
-    }
-
     try {
-      await startGame(currentMusic._id);
+      await startGame(musicId || 'default');
     } catch (error) {
       toast.error('Failed to start game');
     }
-  }, [currentMusic, startGame]);
+  }, [musicId, startGame]);
 
   // Pause/Resume game
   const handlePauseResume = useCallback(() => {
@@ -353,9 +350,8 @@ const GamePage = () => {
     handleStartGame();
   }, [handleStartGame]);
 
-  // Keystroke handler - simplified scoring
+  // Keystroke handler - đơn giản hóa
   const handleKeystroke = useCallback((keystrokeData) => {
-    // Just add the points from the keystroke
     console.log('Key pressed:', keystrokeData.key, 'Points:', keystrokeData.points);
   }, []);
 
@@ -368,19 +364,8 @@ const GamePage = () => {
     );
   }
 
-  // No music selected
-  if (!musicId || !currentMusic) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">No Music Selected</h2>
-          <Button onClick={() => navigate('/music')}>
-            Browse Music Library
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Current music info (sử dụng nhạc mặc định nếu không có)
+  const displayMusic = currentMusic || defaultMusic;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900">
@@ -413,8 +398,14 @@ const GamePage = () => {
 
             {/* Music Info */}
             <div className="text-center">
-              <h1 className="text-xl font-bold text-white">{currentMusic.title}</h1>
-              <p className="text-gray-300">{currentMusic.artist}</p>
+              <h1 className="text-xl font-bold text-white flex items-center justify-center">
+                <Music className="w-5 h-5 mr-2" />
+                {displayMusic.title}
+              </h1>
+              <p className="text-gray-300">{displayMusic.artist}</p>
+              {displayMusic._id === 'default' && (
+                <p className="text-yellow-400 text-sm">🎵 Default Practice Track</p>
+              )}
             </div>
 
             {/* User Info */}
@@ -435,19 +426,19 @@ const GamePage = () => {
       <div className="container mx-auto px-4 py-6">
         <GameStage className="mb-6" />
         
-        {/* Game Stats */}
+        {/* Game Stats - Loại bỏ combo */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
             <div className="text-2xl font-bold text-blue-400">{formatNumber(score.current)}</div>
             <div className="text-xs text-gray-400">Score</div>
           </div>
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
-            <div className="text-2xl font-bold text-green-400">{score.combo}</div>
-            <div className="text-xs text-gray-400">Combo</div>
+            <div className="text-2xl font-bold text-green-400">{stats.totalKeys}</div>
+            <div className="text-xs text-gray-400">Keys Hit</div>
           </div>
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
-            <div className="text-2xl font-bold text-purple-400">{stats.totalKeys}</div>
-            <div className="text-xs text-gray-400">Keys Hit</div>
+            <div className="text-2xl font-bold text-purple-400">{stats.keysPerMinute}</div>
+            <div className="text-xs text-gray-400">Keys/Min</div>
           </div>
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
             <div className="text-2xl font-bold text-yellow-400">{formatTime(progress.currentTime)}</div>
@@ -530,8 +521,18 @@ const GamePage = () => {
         {/* Help Text */}
         <div className="text-center mt-6">
           <p className="text-gray-400 text-sm">
-            Use keyboard keys A-L to play piano and earn points!
+            Use keyboard keys A-L to play piano and earn points! Each key press = 10 points
           </p>
+          {displayMusic._id === 'default' && (
+            <p className="text-yellow-400 text-sm mt-2">
+              🎵 Playing default practice track. <button 
+                onClick={() => navigate('/music')} 
+                className="underline hover:no-underline"
+              >
+                Browse music library
+              </button> to choose a different song.
+            </p>
+          )}
         </div>
       </div>
 

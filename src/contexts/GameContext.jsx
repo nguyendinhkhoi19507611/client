@@ -1,4 +1,4 @@
-// src/contexts/GameContext.jsx - FIXED with correct progressive scoring
+// src/contexts/GameContext.jsx - Loại bỏ combo và thêm nhạc mặc định
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
@@ -22,15 +22,14 @@ const GAME_ACTIONS = {
   START_GAME: 'START_GAME',
   UPDATE_SCORE: 'UPDATE_SCORE',
   ADD_KEYSTROKE: 'ADD_KEYSTROKE',
-  UPDATE_COMBO: 'UPDATE_COMBO',
+  UPDATE_STATS: 'UPDATE_STATS',
   PAUSE_GAME: 'PAUSE_GAME',
   RESUME_GAME: 'RESUME_GAME',
   END_GAME: 'END_GAME',
   RESET_GAME: 'RESET_GAME',
   SET_ERROR: 'SET_ERROR',
   UPDATE_PROGRESS: 'UPDATE_PROGRESS',
-  CLAIM_REWARDS: 'CLAIM_REWARDS',
-  UPDATE_STATS: 'UPDATE_STATS'
+  CLAIM_REWARDS: 'CLAIM_REWARDS'
 };
 
 const initialState = {
@@ -54,9 +53,6 @@ const initialState = {
 
   score: {
     current: 0,
-    combo: 0,
-    maxCombo: 0,
-    multiplier: 1,
     totalKeyPresses: 0,
     basePointsPerKey: 10
   },
@@ -81,6 +77,23 @@ const initialState = {
   }
 };
 
+// Nhạc mặc định
+const defaultMusic = {
+  _id: 'default',
+  title: 'Piano Practice',
+  artist: 'BigCoin Piano',
+  genre: 'practice',
+  duration: 300, // 5 phút
+  audioUrl: '../../public/defaultmusic.mp3',
+  statistics: {
+    playCount: 0,
+    averageScore: 0
+  },
+  featured: false,
+  trending: false,
+  tags: ['practice', 'default']
+};
+
 // Enhanced mock music database
 const mockMusicLibrary = [
   {
@@ -89,6 +102,7 @@ const mockMusicLibrary = [
     artist: 'Beethoven',
     genre: 'classical',
     duration: 180,
+    audioUrl: '/music/fur-elise.mp3',
     statistics: {
       playCount: 25600,
       averageScore: 7800
@@ -103,6 +117,7 @@ const mockMusicLibrary = [
     artist: 'Pachelbel',
     genre: 'classical',
     duration: 240,
+    audioUrl: '/music/canon-in-d.mp3',
     statistics: {
       playCount: 18900,
       averageScore: 9200
@@ -116,6 +131,7 @@ const mockMusicLibrary = [
     artist: 'Beethoven',
     genre: 'classical',
     duration: 300,
+    audioUrl: '/music/moonlight-sonata.mp3',
     statistics: {
       playCount: 12400,
       averageScore: 11500
@@ -128,6 +144,7 @@ const mockMusicLibrary = [
     artist: 'Ed Sheeran',
     genre: 'pop',
     duration: 233,
+    audioUrl: '/music/shape-of-you.mp3',
     statistics: {
       playCount: 45600,
       averageScore: 6800
@@ -141,6 +158,7 @@ const mockMusicLibrary = [
     artist: 'Adele',
     genre: 'pop',
     duration: 285,
+    audioUrl: '/music/someone-like-you.mp3',
     statistics: {
       playCount: 38200,
       averageScore: 8400
@@ -154,6 +172,7 @@ const mockMusicLibrary = [
     artist: 'Queen',
     genre: 'rock',
     duration: 355,
+    audioUrl: '/music/bohemian-rhapsody.mp3',
     statistics: {
       playCount: 21500,
       averageScore: 14200
@@ -168,6 +187,7 @@ const mockMusicLibrary = [
     artist: 'Eagles',
     genre: 'rock',
     duration: 391,
+    audioUrl: '/music/hotel-california.mp3',
     statistics: {
       playCount: 19300,
       averageScore: 10800
@@ -180,6 +200,7 @@ const mockMusicLibrary = [
     artist: 'John Lennon',
     genre: 'pop',
     duration: 183,
+    audioUrl: '/music/imagine.mp3',
     statistics: {
       playCount: 41200,
       averageScore: 7200
@@ -261,21 +282,6 @@ const gameReducer = (state, action) => {
         }
       };
 
-    case GAME_ACTIONS.UPDATE_COMBO:
-      const newCombo = action.payload;
-      // FIXED: Correct multiplier calculation
-      const newMultiplier = Math.floor(newCombo / 10) + 1;
-      
-      return {
-        ...state,
-        score: {
-          ...state.score,
-          combo: newCombo,
-          maxCombo: Math.max(state.score.maxCombo, newCombo),
-          multiplier: newMultiplier
-        }
-      };
-
     case GAME_ACTIONS.PAUSE_GAME:
       return {
         ...state,
@@ -331,12 +337,9 @@ const gameReducer = (state, action) => {
   }
 };
 
-// Enhanced reward calculation
+// Tính toán phần thưởng đơn giản - chỉ dựa trên tổng số phím đã nhấn
 const calculateRewards = (state) => {
   const baseCoins = Math.floor(state.score.current * 0.01);
-  const comboBonus = state.score.maxCombo >= 100 ? 100 : 
-                    state.score.maxCombo >= 50 ? 50 : 
-                    state.score.maxCombo >= 25 ? 25 : 0;
   const accuracyBonus = state.stats.accuracy >= 95 ? 50 : 
                        state.stats.accuracy >= 85 ? 25 : 
                        state.stats.accuracy >= 75 ? 10 : 0;
@@ -344,7 +347,7 @@ const calculateRewards = (state) => {
   return {
     coins: baseCoins,
     experience: Math.floor(state.score.current * 0.1),
-    bonusCoins: comboBonus + accuracyBonus,
+    bonusCoins: accuracyBonus,
     claimed: false
   };
 };
@@ -354,8 +357,8 @@ export const GameProvider = ({ children }) => {
   const { user, updateProfile } = useAuth();
   const { t } = useLanguage();
 
-  // Start game function
-  const startGame = useCallback(async (musicId, settings = {}) => {
+  // Start game function - sử dụng nhạc mặc định nếu không có nhạc được chọn
+  const startGame = useCallback(async (musicId = null, settings = {}) => {
     if (!user) {
       toast.error(t('errors.permissionDenied'));
       return;
@@ -363,6 +366,21 @@ export const GameProvider = ({ children }) => {
 
     dispatch({ type: GAME_ACTIONS.SET_STATE, payload: GAME_STATES.LOADING });
     await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Sử dụng nhạc mặc định nếu không có musicId
+    let selectedMusic = defaultMusic;
+    if (musicId && musicId !== 'default') {
+      const music = getMusicById(musicId);
+      if (music) {
+        selectedMusic = music;
+      }
+    }
+
+    // Set music trước khi bắt đầu game
+    dispatch({
+      type: GAME_ACTIONS.SET_MUSIC,
+      payload: selectedMusic
+    });
 
     const gameSettings = {
       ...state.gameSettings,
@@ -410,39 +428,18 @@ export const GameProvider = ({ children }) => {
     }
   }, [state.sessionId, state.gameState, t]);
 
-  // FIXED: Enhanced keystroke processing with CORRECT progressive scoring
+  // Xử lý phím đơn giản - chỉ cộng điểm cố định mỗi lần nhấn
   const processKeystroke = useCallback(async (keystrokeData) => {
     if (state.gameState !== GAME_STATES.PLAYING || !state.sessionId) return;
 
-    // First, update combo (increment on each key press)
-    const newCombo = state.score.combo + 1;
+    const basePoints = 10; // Điểm cố định mỗi phím
     
-    // Update combo in state
-    dispatch({
-      type: GAME_ACTIONS.UPDATE_COMBO,
-      payload: newCombo
-    });
-
-    // FIXED: Calculate progressive points with correct combo multiplier
-    const basePoints = 10; // Base points per key
-    
-    // Combo bonus: +1 point for every 5 combo
-    const comboBonus = Math.floor(newCombo / 5);
-    
-    // Multiplier bonus: 1x for 0-9 combo, 2x for 10-19, 3x for 20-29, etc.
-    const multiplier = Math.floor(newCombo / 10) + 1;
-    
-    // Total points = (base + combo bonus) * multiplier
-    const totalPoints = (basePoints + comboBonus) * multiplier;
-
-    console.log(`🎹 Key: ${keystrokeData.key} | Combo: ${newCombo} | Multiplier: ${multiplier}x | Points: ${totalPoints}`);
+    console.log(`🎹 Key: ${keystrokeData.key} | Points: ${basePoints}`);
 
     // Add keystroke to history
     const enhancedKeystroke = {
       ...keystrokeData,
-      points: totalPoints,
-      combo: newCombo,
-      multiplier: multiplier
+      points: basePoints
     };
 
     dispatch({
@@ -450,8 +447,8 @@ export const GameProvider = ({ children }) => {
       payload: enhancedKeystroke
     });
 
-    // Update score with calculated points
-    const newScore = state.score.current + totalPoints;
+    // Update score - chỉ cộng điểm đơn giản
+    const newScore = state.score.current + basePoints;
     const newTotalKeyPresses = state.score.totalKeyPresses + 1;
     
     dispatch({
@@ -485,45 +482,25 @@ export const GameProvider = ({ children }) => {
       payload: newStats
     });
 
-    // Enhanced visual feedback with dynamic colors based on combo
+    // Visual feedback đơn giản
     if (typeof window !== 'undefined') {
       const scoreElement = document.createElement('div');
-      scoreElement.innerHTML = `+${totalPoints}`;
+      scoreElement.innerHTML = `+${basePoints}`;
       scoreElement.className = 'floating-score';
-      
-      // Dynamic color and size based on combo level
-      let color = '#10b981'; // Green default
-      let fontSize = 24;
-      
-      if (newCombo >= 50) {
-        color = '#f59e0b'; // Gold for high combo
-        fontSize = 36;
-      } else if (newCombo >= 25) {
-        color = '#8b5cf6'; // Purple for medium combo
-        fontSize = 32;
-      } else if (newCombo >= 10) {
-        color = '#3b82f6'; // Blue for low combo
-        fontSize = 28;
-      }
       
       scoreElement.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        color: ${color};
-        font-size: ${fontSize}px;
+        color: #10b981;
+        font-size: 24px;
         font-weight: bold;
         z-index: 1000;
         pointer-events: none;
         animation: scoreFloat 1s ease-out forwards;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       `;
-      
-      // Add glow effect for high combos
-      if (newCombo >= 25) {
-        scoreElement.style.textShadow = `0 0 10px ${color}, 0 2px 4px rgba(0, 0, 0, 0.5)`;
-      }
       
       document.body.appendChild(scoreElement);
       setTimeout(() => {
@@ -533,32 +510,9 @@ export const GameProvider = ({ children }) => {
       }, 1000);
     }
 
-    // Enhanced combo milestone notifications with progressive rewards
-    if (newCombo > 0 && newCombo % 25 === 0) {
-      const bonusPoints = newCombo * 2; // Progressive bonus
-      
-      dispatch({
-        type: GAME_ACTIONS.UPDATE_SCORE,
-        payload: {
-          current: newScore + bonusPoints
-        }
-      });
-      
-      toast.success(`🔥 ${newCombo} Combo! +${bonusPoints} Bonus Points!`, {
-        duration: 3000,
-        style: {
-          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-          color: 'white',
-          fontWeight: 'bold'
-        }
-      });
-    }
-
     return {
-      totalScore: newScore + (newCombo % 25 === 0 ? newCombo * 2 : 0),
-      points: totalPoints,
-      combo: newCombo,
-      multiplier: multiplier
+      totalScore: newScore,
+      points: basePoints
     };
   }, [state.gameState, state.sessionId, state.score, state.stats, state.startTime]);
 
@@ -664,6 +618,7 @@ export const GameProvider = ({ children }) => {
 
   // Music library functions
   const getMusicById = useCallback((id) => {
+    if (id === 'default') return defaultMusic;
     return mockMusicLibrary.find(m => m._id === id) || null;
   }, []);
 
@@ -700,6 +655,7 @@ export const GameProvider = ({ children }) => {
 
   const value = {
     ...state,
+    defaultMusic, // Export default music
     startGame,
     pauseGame,
     resumeGame,

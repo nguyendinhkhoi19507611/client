@@ -1,4 +1,4 @@
-// User dashboard page with mock data
+// src/pages/Dashboard/DashboardPage.jsx - Cập nhật để bắt đầu với nhạc mặc định
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,8 @@ import {
   ArrowRight,
   Clock,
   Users,
-  Zap
+  Zap,
+  Library
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/UI/Button';
@@ -25,7 +26,7 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState('7d');
 
-  // Mock dashboard data
+  // Mock dashboard data (loại bỏ thông tin combo)
   const dashboardData = useMemo(() => ({
     stats: {
       totalCoins: user?.coins?.available || 1234.56,
@@ -42,13 +43,13 @@ const DashboardPage = () => {
     recentGames: [
       {
         id: 1,
-        musicTitle: "Für Elise",
-        artist: "Beethoven",
+        musicTitle: "Piano Practice",
+        artist: "BigCoin Piano",
         score: 9500,
         accuracy: 94.2,
         coinsEarned: 12.5,
         playedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        difficulty: 'medium'
+        isDefault: true
       },
       {
         id: 2,
@@ -58,22 +59,22 @@ const DashboardPage = () => {
         accuracy: 89.1,
         coinsEarned: 10.8,
         playedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        difficulty: 'hard'
+        isDefault: false
       },
       {
         id: 3,
-        musicTitle: "Moonlight Sonata",
-        artist: "Beethoven",
+        musicTitle: "Piano Practice",
+        artist: "BigCoin Piano",
         score: 7200,
         accuracy: 76.5,
         coinsEarned: 8.2,
         playedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        difficulty: 'expert'
+        isDefault: true
       }
     ],
     achievements: [
       { id: 1, name: "Perfect Score", description: "Achieve 100% accuracy", progress: 94, total: 100, unlocked: false },
-      { id: 2, name: "Speed Demon", description: "Complete 10 songs in expert mode", progress: 7, total: 10, unlocked: false },
+      { id: 2, name: "Key Master", description: "Press 1000 keys", progress: 850, total: 1000, unlocked: false },
       { id: 3, name: "Coin Master", description: "Earn 1000 BigCoins", progress: user?.coins?.total || 1234, total: 1000, unlocked: true }
     ],
     featured: [
@@ -98,13 +99,22 @@ const DashboardPage = () => {
               </h1>
               <p className="text-gray-300 mt-1">Ready to earn some BigCoins?</p>
             </div>
-            <Button
-              onClick={() => navigate('/music')}
-              className="bg-gradient-to-r from-green-600 to-emerald-600"
-              icon={<Play className="w-5 h-5" />}
-            >
-              Start Playing
-            </Button>
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => navigate('/game')}
+                className="bg-gradient-to-r from-green-600 to-emerald-600"
+                icon={<Play className="w-5 h-5" />}
+              >
+                Quick Play
+              </Button>
+              <Button
+                onClick={() => navigate('/music')}
+                variant="outline"
+                icon={<Library className="w-5 h-5" />}
+              >
+                Browse Music
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -239,17 +249,16 @@ const DashboardPage = () => {
                         <Music className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-white">{game.musicTitle}</h4>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-medium text-white">{game.musicTitle}</h4>
+                          {game.isDefault && (
+                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                              Default
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-400">{game.artist}</p>
                         <div className="flex items-center space-x-3 mt-1">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            game.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-                            game.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                            game.difficulty === 'hard' ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
-                            {game.difficulty.toUpperCase()}
-                          </span>
                           <span className="text-xs text-gray-500">
                             {formatTime((Date.now() - game.playedAt) / 1000)} ago
                           </span>
@@ -281,10 +290,18 @@ const DashboardPage = () => {
                 <Button
                   fullWidth
                   variant="primary"
-                  onClick={() => navigate('/music')}
+                  onClick={() => navigate('/game')}
                   icon={<Play className="w-4 h-4" />}
                 >
-                  Play Now
+                  Quick Play (Default Music)
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outline"
+                  onClick={() => navigate('/music')}
+                  icon={<Library className="w-4 h-4" />}
+                >
+                  Browse Music Library
                 </Button>
                 <Button
                   fullWidth
@@ -305,11 +322,31 @@ const DashboardPage = () => {
               </div>
             </motion.div>
 
-            {/* Achievements */}
+            {/* Game Tip */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
+              className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-6 border border-blue-500/30"
+            >
+              <div className="flex items-center mb-4">
+                <Zap className="w-6 h-6 text-yellow-400 mr-2" />
+                <h3 className="text-lg font-semibold text-white">Pro Tip</h3>
+              </div>
+              <p className="text-gray-300 text-sm mb-4">
+                Each key press earns you 10 BigCoins! Focus on accuracy and speed to maximize your earnings.
+              </p>
+              <div className="bg-black/20 rounded-lg p-3">
+                <div className="text-yellow-400 text-xs font-medium mb-1">Current Rate:</div>
+                <div className="text-white text-lg font-bold">10 BC per key press</div>
+              </div>
+            </motion.div>
+
+            {/* Achievements */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
               className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700"
             >
               <div className="flex items-center justify-between mb-4">
@@ -358,7 +395,7 @@ const DashboardPage = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.3 }}
               className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700"
             >
               <h3 className="text-lg font-semibold text-white mb-4">Featured Collections</h3>
@@ -379,6 +416,24 @@ const DashboardPage = () => {
                     <ArrowRight className="w-4 h-4 text-gray-400" />
                   </div>
                 ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-green-600/20 border border-green-600/30 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Play className="w-4 h-4 text-green-400" />
+                  <span className="text-green-400 font-medium text-sm">Quick Start</span>
+                </div>
+                <p className="text-gray-300 text-sm mb-3">
+                  Don't want to choose? Click "Quick Play" to start earning with our default practice track immediately!
+                </p>
+                <Button
+                  fullWidth
+                  size="sm"
+                  onClick={() => navigate('/game')}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Start Earning Now
+                </Button>
               </div>
             </motion.div>
           </div>
