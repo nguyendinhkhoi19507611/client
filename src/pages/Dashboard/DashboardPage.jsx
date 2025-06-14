@@ -124,7 +124,7 @@ const DashboardPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Total Coins */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -163,7 +163,7 @@ const DashboardPage = () => {
               </motion.div>
 
               {/* Total Games */}
-              <motion.div
+              {/* <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -179,11 +179,11 @@ const DashboardPage = () => {
                     <Music className="w-8 h-8 text-blue-400" />
                   </div>
                 </div>
-              </motion.div>
+              </motion.div> */}
             </div>
 
             {/* Level Progress */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -214,7 +214,7 @@ const DashboardPage = () => {
                 <span>{formatNumber(stats.currentExp)} XP</span>
                 <span>{formatNumber(stats.nextLevelExp)} XP</span>
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* Recent Games */}
             {/* <motion.div
