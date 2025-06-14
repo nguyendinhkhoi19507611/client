@@ -280,7 +280,7 @@ const MusicLibraryPage = () => {
             {/* View Controls */}
             <div className="flex items-center space-x-4">
               {/* Sort Dropdown */}
-              <div className="relative">
+              {/* <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -291,10 +291,10 @@ const MusicLibraryPage = () => {
                   <option value="alphabetical">A-Z</option>
                   <option value="duration">Duration</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* View Mode Toggle */}
-              <div className="flex border border-gray-600 rounded-lg overflow-hidden">
+              {/* <div className="flex border border-gray-600 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}
@@ -307,7 +307,7 @@ const MusicLibraryPage = () => {
                 >
                   <List className="w-4 h-4" />
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -336,7 +336,7 @@ const MusicLibraryPage = () => {
         )}
 
         {/* Trending Section */}
-        {!searchQuery && trendingMusic.length > 0 && (
+        {/* {!searchQuery && trendingMusic.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-green-400" />
@@ -354,7 +354,7 @@ const MusicLibraryPage = () => {
               ))}
             </div>
           </section>
-        )}
+        )} */}
 
         {/* All Music / Search Results */}
         <section>

@@ -16,7 +16,9 @@ export const musicService = {
     
     getMusicById: async (id) => null,
     
-    getFeaturedMusic: async () => [],
+    getFeaturedMusic: async () => {
+      return []
+    } ,
     
     getTrendingMusic: async () => []
   };

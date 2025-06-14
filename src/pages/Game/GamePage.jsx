@@ -475,9 +475,9 @@ const GamePage = () => {
           
           {(isGameActive() || isGamePaused()) && (
             <>
-              <Button onClick={handlePauseResume} variant="outline" size="lg">
+              {/* <Button onClick={handlePauseResume} variant="outline" size="lg">
                 {isGameActive() ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              </Button>
+              </Button> */}
               
               <Button
                 onClick={handleEndGame}
@@ -487,7 +487,7 @@ const GamePage = () => {
                 className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
               >
                 <Square className="w-5 h-5 mr-2" />
-                End Game
+                {/* End Game */}
               </Button>
             </>
           )}
