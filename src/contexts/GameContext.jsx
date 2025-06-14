@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
 import defaultMusicFile from '../assets/defaultmusic.mp3';
 import { useAudio } from './AudioContext';
+import { log } from 'tone/build/esm/core/util/Debug';
 
 const GameContext = createContext();
 
@@ -358,7 +359,7 @@ export const GameProvider = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const { user, updateProfile } = useAuth();
   const { t } = useLanguage();
-  const { playBackgroundMusic, stopBackgroundMusic } = useAudio();
+  const { playBackgroundMusic, stopBackgroundMusic, pauseBackgroundMusic } = useAudio();
 
   // Start game function - sử dụng nhạc mặc định nếu không có nhạc được chọn
   const startGame = useCallback(async (musicId = null, settings = {}) => {
@@ -415,7 +416,8 @@ export const GameProvider = ({ children }) => {
   const pauseGame = useCallback(() => {
     if (state.gameState === GAME_STATES.PLAYING) {
       dispatch({ type: GAME_ACTIONS.PAUSE_GAME });
-      toast.info(t('game.pauseGame'));
+      pauseBackgroundMusic();
+      toast.success(t('game.pauseGame'));
     }
   }, [state.gameState, t]);
 

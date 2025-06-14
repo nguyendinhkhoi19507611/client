@@ -369,6 +369,14 @@ export const AudioProvider = ({ children }) => {
     }
   }, []);
 
+  // pause background music
+  const pauseBackgroundMusic = useCallback(() => {
+    if (backgroundPlayerRef.current) {
+      // backgroundPlayerRef.current.stop();
+      // dispatch({ type: AUDIO_ACTIONS.SET_BACKGROUND_MUSIC, payload: null });
+    }
+  }, []);
+
   // Context value
   const value = {
     // State
@@ -386,6 +394,7 @@ export const AudioProvider = ({ children }) => {
     applyEffect,
     playBackgroundMusic,
     stopBackgroundMusic,
+    pauseBackgroundMusic,
     
     // Getters
     getAudioInfo,
