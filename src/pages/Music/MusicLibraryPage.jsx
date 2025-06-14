@@ -246,14 +246,14 @@ const MusicLibraryPage = () => {
   }, [searchQuery, sortBy, searchMusic]);
 
   // Get featured music
-  const featuredMusic = useMemo(() => {
-    return getFeaturedMusic().slice(0, 4);
-  }, [getFeaturedMusic]);
+  // const featuredMusic = useMemo(() => {
+  //   return getFeaturedMusic().slice(0, 4);
+  // }, [getFeaturedMusic]);
 
   // Get trending music
-  const trendingMusic = useMemo(() => {
-    return getTrendingMusic().slice(0, 4);
-  }, [getTrendingMusic]);
+  // const trendingMusic = useMemo(() => {
+  //   return getTrendingMusic().slice(0, 4);
+  // }, [getTrendingMusic]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900">
@@ -315,7 +315,7 @@ const MusicLibraryPage = () => {
 
       <div className="container mx-auto px-4 py-6">
         {/* Featured Section */}
-        {!searchQuery && featuredMusic.length > 0 && (
+        {/* {!searchQuery && featuredMusic.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
               <Star className="w-5 h-5 mr-2 text-yellow-400" />
@@ -333,7 +333,7 @@ const MusicLibraryPage = () => {
               ))}
             </div>
           </section>
-        )}
+        )} */}
 
         {/* Trending Section */}
         {/* {!searchQuery && trendingMusic.length > 0 && (
@@ -367,14 +367,12 @@ const MusicLibraryPage = () => {
             </span>
           </div>
 
-          {/* Loading State */}
           {isLoading && (
             <div className="flex justify-center py-12">
               <LoadingSpinner size="lg" />
             </div>
           )}
 
-          {/* Empty State */}
           {!isLoading && filteredMusic.length === 0 && (
             <div className="text-center py-12">
               <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -383,7 +381,6 @@ const MusicLibraryPage = () => {
             </div>
           )}
 
-          {/* Music Grid/List */}
           {!isLoading && filteredMusic.length > 0 && (
             <div className={
               viewMode === 'grid' 
