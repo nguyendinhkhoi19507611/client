@@ -37,13 +37,13 @@ const Header = () => {
   const navigation = [
     { name: t('nav.home'), href: '/', icon: Home },
     { name: t('nav.music'), href: '/music', icon: Library },
-    { name: t('nav.leaderboard'), href: '/leaderboard', icon: Trophy },
+    // { name: t('nav.leaderboard'), href: '/leaderboard', icon: Trophy },
   ];
 
   const userNavigation = [
     { name: t('nav.dashboard'), href: '/dashboard', icon: User },
-    { name: t('nav.profile'), href: '/profile', icon: Settings },
-    { name: t('nav.payments'), href: '/payment', icon: CreditCard },
+    // { name: t('nav.profile'), href: '/profile', icon: Settings },
+    // { name: t('nav.payments'), href: '/payment', icon: CreditCard },
   ];
 
   // Add admin navigation if user is admin

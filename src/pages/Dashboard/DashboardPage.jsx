@@ -217,7 +217,7 @@ const DashboardPage = () => {
             </motion.div>
 
             {/* Recent Games */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -274,7 +274,7 @@ const DashboardPage = () => {
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
+            </motion.div> */}
           </div>
 
           {/* Sidebar */}
@@ -303,7 +303,7 @@ const DashboardPage = () => {
                 >
                   Browse Music Library
                 </Button>
-                <Button
+                {/* <Button
                   fullWidth
                   variant="outline"
                   onClick={() => navigate('/payment')}
@@ -318,12 +318,12 @@ const DashboardPage = () => {
                   icon={<Trophy className="w-4 h-4" />}
                 >
                   Leaderboard
-                </Button>
+                </Button> */}
               </div>
             </motion.div>
 
             {/* Game Tip */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
@@ -340,10 +340,10 @@ const DashboardPage = () => {
                 <div className="text-yellow-400 text-xs font-medium mb-1">Current Rate:</div>
                 <div className="text-white text-lg font-bold">10 BC per key press</div>
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* Achievements */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
@@ -389,10 +389,10 @@ const DashboardPage = () => {
               >
                 View All Achievements
               </Button>
-            </motion.div>
+            </motion.div> */}
 
             {/* Featured Collections */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
@@ -435,7 +435,7 @@ const DashboardPage = () => {
                   Start Earning Now
                 </Button>
               </div>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
       </div>
