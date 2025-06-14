@@ -472,6 +472,18 @@ const GamePage = () => {
               Start Game
             </Button>
           )}
+
+          {gameState === GAME_STATES.COMPLETED && (
+            <Button
+            onClick={handlePlayAgain}
+            loading={isStarting}
+            size="lg"
+            className="bg-gradient-to-r from-green-600 to-emerald-600"
+           >
+            <Play className="w-5 h-5 mr-2" />
+              Start Game
+            </Button>
+          )}  
           
           {(isGameActive() || isGamePaused()) && (
             <>

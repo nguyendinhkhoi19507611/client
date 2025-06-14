@@ -255,7 +255,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Referral Code Field */}
-            <div>
+            {/* <div>
               <label htmlFor="referralCode" className="block text-sm font-medium text-gray-300 mb-2">
                 Referral Code (Optional)
               </label>
@@ -276,7 +276,7 @@ const RegisterPage = () => {
               <p className="mt-1 text-xs text-green-400">
                 Get 50 bonus BigCoins with a valid referral code!
               </p>
-            </div>
+            </div> */}
 
             {/* Terms Agreement */}
             <div>
@@ -320,7 +320,7 @@ const RegisterPage = () => {
           </form>
 
           {/* Social Login */}
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-600" />
@@ -338,7 +338,7 @@ const RegisterPage = () => {
                 Facebook
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">

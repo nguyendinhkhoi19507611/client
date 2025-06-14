@@ -450,6 +450,8 @@ export const GameProvider = ({ children }) => {
   }, [state.gameState, state.sessionId, state.score, state.stats, state.startTime]);
 
   const claimRewards = useCallback(async () => {
+    console.log(`Claiming rewards for session ${state.sessionId}...`);
+
     if (state.sessionId && state.gameState === GAME_STATES.COMPLETED && !state.rewards.claimed) {
       await new Promise(resolve => setTimeout(resolve, 1000));
 

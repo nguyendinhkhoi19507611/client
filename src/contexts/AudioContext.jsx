@@ -280,6 +280,7 @@ export const AudioProvider = ({ children }) => {
   // Load and play audio file
   const loadAudioFile = useCallback(async (url) => {
     try {
+      console.log(`Loading audio file: ${url}`);
       dispatch({ type: AUDIO_ACTIONS.SET_LOADING, payload: true });
       
       const player = new Tone.Player(url).toDestination();
@@ -350,9 +351,13 @@ export const AudioProvider = ({ children }) => {
         backgroundPlayerRef.current.stop();
       }
 
-      // Load and play new music
-      await backgroundPlayerRef.current.load(url);
-      backgroundPlayerRef.current.start();
+      const newPlayer = new Tone.Player(url).toDestination();
+      
+      backgroundPlayerRef.current = newPlayer;
+      backgroundPlayerRef.current.autostart = false;
+    
+      await Tone.loaded(); // đợi file load xong
+      backgroundPlayerRef.current.start(); // phát nhạc
       dispatch({ type: AUDIO_ACTIONS.SET_BACKGROUND_MUSIC, payload: url });
 
     } catch (error) {

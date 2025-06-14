@@ -467,13 +467,14 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     localStorage.removeItem('bigcoin_user');
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    const message = state.language === 'vi' 
-      ? 'Đăng xuất thành công'
-      : 'Logged out successfully';
-    toast.success(message);
+    // const message = state.language === 'vi' 
+    //   ? 'Đăng xuất thành công'
+    //   : 'Logged out successfully';
+    // toast.success(message);
   };
 
   const updateProfile = async (profileData) => {
+    console.log('Updating profile with data:', profileData);
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const updatedUser = { ...state.user, ...profileData };

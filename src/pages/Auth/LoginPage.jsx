@@ -184,12 +184,12 @@ const LoginPage = () => {
                   Remember me
                 </label>
               </div>
-              <Link
+              {/* <Link
                 to="/forgot-password"
                 className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
               >
                 Forgot password?
-              </Link>
+              </Link> */}
             </div>
 
             {/* Submit Button */}
@@ -205,7 +205,7 @@ const LoginPage = () => {
           </form>
 
           {/* Social Login */}
-          <div className="mt-6">
+          {/* <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-600" />
@@ -223,7 +223,7 @@ const LoginPage = () => {
                 Facebook
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
