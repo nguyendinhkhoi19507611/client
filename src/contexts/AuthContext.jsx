@@ -422,10 +422,10 @@ export const AuthProvider = ({ children }) => {
       payload: profileData
     });
     
-    const message = state.language === 'vi' 
-      ? 'Cập nhật hồ sơ thành công'
-      : 'Profile updated successfully';
-    toast.success(message);
+    // const message = state.language === 'vi' 
+    //   ? 'Cập nhật hồ sơ thành công'
+    //   : 'Profile updated successfully';
+    // toast.success(message);
     return updatedUser;
   };
 

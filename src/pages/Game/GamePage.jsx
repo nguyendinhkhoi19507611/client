@@ -196,21 +196,21 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
             )}
           </div>
           
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 gap-1 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-400">BigCoins:</span>
               <span className="text-yellow-400 font-medium">+{rewards.coins}</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span className="text-gray-400">Experience:</span>
               <span className="text-blue-400 font-medium">+{rewards.experience}</span>
-            </div>
-            {rewards.bonusCoins > 0 && (
+            </div> */}
+            {/* {rewards.bonusCoins > 0 && (
               <div className="flex justify-between col-span-2">
                 <span className="text-gray-400">Bonus:</span>
                 <span className="text-green-400 font-medium">+{rewards.bonusCoins}</span>
               </div>
-            )}
+            )} */}
           </div>
         </div>
 

@@ -225,6 +225,8 @@ const MusicLibraryPage = () => {
     if (size !== 12) {
       params.set('size', size.toString());
     }
+
+    console.log(`Updating URL params: page=${page}, size=${size}, query="${query}"`);
     
     setSearchParams(params, { replace: true });
   };
@@ -277,6 +279,7 @@ const MusicLibraryPage = () => {
       
       try {
         // Simulate API call với pagination
+        console.log(`Fetching music with query: "${searchQuery}", page: ${currentPage}, limit: ${itemsPerPage}, sort: ${sortBy}`);
         const searchResult = await searchMusic({ 
           q: searchQuery,
           page: currentPage,
@@ -303,12 +306,12 @@ const MusicLibraryPage = () => {
         });
 
         // Simulate pagination on frontend (since we don't have real backend)
-        const totalResults = allResults.length;
+        const totalResults = searchResult.totalItems;
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        const paginatedResults = allResults.slice(startIndex, endIndex);
+        // const paginatedResults = allResults.slice(startIndex, endIndex);
 
-        setFilteredMusic(paginatedResults);
+        setFilteredMusic(searchResult.music || []);
         setTotalItems(totalResults);
         setTotalPages(Math.ceil(totalResults / itemsPerPage));
       } catch (error) {

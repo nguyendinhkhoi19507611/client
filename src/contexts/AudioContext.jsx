@@ -352,7 +352,10 @@ export const AudioProvider = ({ children }) => {
       }
 
       console.log(`Playing background music: ${url}`);
-      const newPlayer = new Tone.Player("http://localhost:5000/proxy-audio?url=" + url).toDestination();
+      if (url === '/src/assets/defaultmusic.mp3 ') {
+        url = 'http://localhost:5000/proxy-audio?url=' + url;
+      }
+      const newPlayer = new Tone.Player(url).toDestination();
       // proxy-audio
       backgroundPlayerRef.current = newPlayer;
       backgroundPlayerRef.current.autostart = false;

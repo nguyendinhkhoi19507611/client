@@ -456,10 +456,11 @@ export const GameProvider = ({ children }) => {
     console.log(`Claiming rewards for session ${state.sessionId}...`);
 
     if (state.sessionId && state.gameState === GAME_STATES.COMPLETED && !state.rewards.claimed) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // await new Promise(resolve => setTimeout(resolve, 1000));
 
       const currentCoins = user?.coins?.available || 0;
-      const totalReward = state.rewards.coins + state.rewards.bonusCoins;
+      // const totalReward = state.rewards.coins + state.rewards.bonusCoins;
+      const totalReward = state.rewards.coins;
       
       await updateProfile({
         coins: {
