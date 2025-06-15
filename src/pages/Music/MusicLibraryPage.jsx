@@ -21,6 +21,7 @@ import { formatTime, formatNumber } from '../../utils/formatters';
 import Button from '../../components/UI/Button';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
 import Pagination from '../../components/UI/Pagination';
+import { useDebounce } from '../../hooks/useDebounce';
 
 // Music Card Component - simplified without difficulty
 const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
@@ -198,6 +199,7 @@ const MusicLibraryPage = () => {
   const [likedSongs, setLikedSongs] = useState(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [filteredMusic, setFilteredMusic] = useState([]);
+  const debouncedSearchQuery = useDebounce(searchQuery, 1000);
 
   // Initialize from URL params
   useEffect(() => {
@@ -276,19 +278,18 @@ const MusicLibraryPage = () => {
   useEffect(() => {
     const fetchAndFilter = async () => {
       setIsLoading(true);
-      
+  
       try {
-        // Simulate API call với pagination
-        console.log(`Fetching music with query: "${searchQuery}", page: ${currentPage}, limit: ${itemsPerPage}, sort: ${sortBy}`);
+        console.log(`Fetching music with query: "${debouncedSearchQuery}", page: ${currentPage}, limit: ${itemsPerPage}, sort: ${sortBy}`);
         const searchResult = await searchMusic({ 
-          q: searchQuery,
+          q: debouncedSearchQuery,
           page: currentPage,
           limit: itemsPerPage,
           sort: sortBy
         });
-        
+  
         let allResults = searchResult.music || [];
-        
+  
         // Sort results
         allResults.sort((a, b) => {
           switch (sortBy) {
@@ -304,16 +305,10 @@ const MusicLibraryPage = () => {
               return 0;
           }
         });
-
-        // Simulate pagination on frontend (since we don't have real backend)
-        const totalResults = searchResult.totalItems;
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        // const paginatedResults = allResults.slice(startIndex, endIndex);
-
+  
         setFilteredMusic(searchResult.music || []);
-        setTotalItems(totalResults);
-        setTotalPages(Math.ceil(totalResults / itemsPerPage));
+        setTotalItems(searchResult.totalItems);
+        setTotalPages(Math.ceil(searchResult.totalItems / itemsPerPage));
       } catch (error) {
         console.error('Error fetching music:', error);
         setFilteredMusic([]);
@@ -323,9 +318,10 @@ const MusicLibraryPage = () => {
         setIsLoading(false);
       }
     };
-
+  
     fetchAndFilter();
-  }, [searchQuery, sortBy, currentPage, itemsPerPage, searchMusic]);
+  }, [debouncedSearchQuery, sortBy, currentPage, itemsPerPage, searchMusic]);
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900">
