@@ -1,6 +1,8 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { authService } from '../services/authService';
+import { tokenManager } from '../utils/tokenManager';
 
 const AuthContext = createContext();
 
@@ -332,11 +334,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    const userData = await authService.login(credentials)
 
-    const user = mockUsers.find(u => 
-      u.email === credentials.email && u.password === credentials.password
-    );
+    // const user = mockUsers.find(u => 
+    //   u.email === credentials.email && u.password === credentials.password
+    // );
+
+    const { accessToken, refreshToken, user } = userData;
+    tokenManager.setTokens(accessToken, refreshToken);
 
     if (user) {
       const userToStore = { ...user };
@@ -366,102 +372,33 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const existingUser = mockUsers.find(u => 
-      u.email === userData.email || u.username === userData.username
-    );
 
-    if (existingUser) {
-      const errorMessage = state.language === 'vi' 
-        ? 'Người dùng đã tồn tại'
-        : 'User already exists';
+    const newUser = await authService.register(userData);
+
+    dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+    
+    if (!newUser) {
+      const errorMessage = 'Registration failed';
       dispatch({
         type: AUTH_ACTIONS.LOGIN_FAILURE,
         payload: errorMessage
       });
       toast.error(errorMessage);
-      throw new Error(errorMessage);
+      return;
     }
-
-    const newUser = {
-      id: Date.now().toString(),
-      username: userData.username,
-      email: userData.email,
-      fullName: userData.fullName || userData.username,
-      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&sig=${Date.now()}`,
-      country: 'Vietnam',
-      joinedDate: new Date().toISOString().split('T')[0],
-      coins: {
-        available: 100,
-        pending: 0,
-        total: 100,
-        earned: 100,
-        withdrawn: 0
-      },
-      statistics: {
-        level: 1,
-        experience: 0,
-        totalGames: 0,
-        bestScore: 0,
-        totalPlayTime: 0,
-        accuracy: 0,
-        perfectNotes: 0,
-        streak: 0,
-        averageAccuracy: 0
-      },
-      subscriptions: {
-        premium: {
-          active: false,
-          type: null,
-          expiresAt: null
-        }
-      },
-      kyc: {
-        status: 'not_submitted'
-      },
-      preferences: {
-        language: state.language,
-        soundEnabled: true,
-        visualEffects: true,
-        notifications: {
-          achievements: true,
-          rewards: true,
-          promotions: true
-        }
-      },
-      achievements: [
-        { id: 'welcome', name: 'Welcome!', unlockedAt: new Date().toISOString() }
-      ],
-      gameHistory: [],
-      transactions: [
-        {
-          id: 'welcome_bonus',
-          type: 'bonus',
-          amount: 100,
-          currency: 'BIGCOIN',
-          status: 'completed',
-          description: 'Welcome bonus',
-          timestamp: new Date()
-        }
-      ],
-      role: 'user'
-    };
-
-    mockUsers.push({ ...newUser, password: userData.password });
-    localStorage.setItem('bigcoin_user', JSON.stringify(newUser));
+    
+    localStorage.setItem('bigcoin_user', JSON.stringify(newUser.user));
     
     dispatch({
       type: AUTH_ACTIONS.LOGIN_SUCCESS,
-      payload: { user: newUser }
+      payload: { user: newUser.user }
     });
     
     const successMessage = state.language === 'vi' 
-      ? `Chào mừng đến với BigCoin Piano, ${newUser.username}! Bạn đã nhận được 100 BigCoins thưởng!`
-      : `Welcome to BigCoin Piano, ${newUser.username}! You received 100 bonus BigCoins!`;
+      ? `Chào mừng đến với BigCoin Piano, ${newUser.user.username}! Bạn đã nhận được 100 BigCoins thưởng!`
+      : `Welcome to BigCoin Piano, ${newUser.user.username}! You received 100 bonus BigCoins!`;
     toast.success(successMessage);
-    return newUser;
+    return newUser.user;
   };
 
   const logout = async () => {
@@ -474,10 +411,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (profileData) => {
-    console.log('Updating profile with data:', profileData);
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const updatedUser = { ...state.user, ...profileData };
+    await authService.updateProfile(updatedUser);
     localStorage.setItem('bigcoin_user', JSON.stringify(updatedUser));
     
     dispatch({
