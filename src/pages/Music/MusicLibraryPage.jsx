@@ -1,4 +1,4 @@
-// Music library and browse page - simplified version
+// src/pages/Music/MusicLibraryPage.jsx - Updated with pagination
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -20,7 +20,7 @@ import { useGame } from '../../contexts/GameContext';
 import { formatTime, formatNumber } from '../../utils/formatters';
 import Button from '../../components/UI/Button';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
-import { log } from 'tone/build/esm/core/util/Debug';
+import Pagination from '../../components/UI/Pagination';
 
 // Music Card Component - simplified without difficulty
 const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
@@ -183,25 +183,73 @@ const MusicLibraryPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { searchMusic, getFeaturedMusic, getTrendingMusic } = useGame();
+  const { searchMusic } = useGame();
 
-  // State
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Other state
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('popularity');
   const [likedSongs, setLikedSongs] = useState(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [filteredMusic, setFilteredMusic] = useState([]);
+
+  // Initialize from URL params
+  useEffect(() => {
+    const page = parseInt(searchParams.get('page')) || 1;
+    const size = parseInt(searchParams.get('size')) || 12;
+    const query = searchParams.get('q') || '';
+    
+    setCurrentPage(page);
+    setItemsPerPage(size);
+    setSearchQuery(query);
+  }, []);
+
+  // Update URL when pagination changes
+  const updateURLParams = (page, size, query = searchQuery) => {
+    const params = new URLSearchParams();
+    
+    if (query) {
+      params.set('q', query);
+    }
+    
+    if (page > 1) {
+      params.set('page', page.toString());
+    }
+    
+    if (size !== 12) {
+      params.set('size', size.toString());
+    }
+    
+    setSearchParams(params, { replace: true });
+  };
 
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    const params = new URLSearchParams(searchParams);
-    if (searchQuery) {
-      params.set('q', searchQuery);
-    } else {
-      params.delete('q');
-    }
-    setSearchParams(params);
+    setCurrentPage(1);
+    updateURLParams(1, itemsPerPage, searchQuery);
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    updateURLParams(page, itemsPerPage);
+    
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (size) => {
+    setItemsPerPage(size);
+    setCurrentPage(1);
+    updateURLParams(1, size);
   };
 
   // Handle like/unlike
@@ -222,45 +270,59 @@ const MusicLibraryPage = () => {
     });
   };
 
-  const [filteredMusic, setFilteredMusic] = useState([]);
-
+  // Fetch music with pagination
   useEffect(() => {
     const fetchAndFilter = async () => {
-      const searchResult = await searchMusic({ q: searchQuery });
-      let results = searchResult.music;
+      setIsLoading(true);
+      
+      try {
+        // Simulate API call với pagination
+        const searchResult = await searchMusic({ 
+          q: searchQuery,
+          page: currentPage,
+          limit: itemsPerPage,
+          sort: sortBy
+        });
+        
+        let allResults = searchResult.music || [];
+        
+        // Sort results
+        allResults.sort((a, b) => {
+          switch (sortBy) {
+            case 'popularity':
+              return b.statistics.playCount - a.statistics.playCount;
+            case 'newest':
+              return b._id.localeCompare(a._id);
+            case 'duration':
+              return a.duration - b.duration;
+            case 'alphabetical':
+              return a.title.localeCompare(b.title);
+            default:
+              return 0;
+          }
+        });
 
-      // Sort results
-      results.sort((a, b) => {
-        switch (sortBy) {
-          case 'popularity':
-            return b.statistics.playCount - a.statistics.playCount;
-          case 'newest':
-            return b._id.localeCompare(a._id);
-          case 'duration':
-            return a.duration - b.duration;
-          case 'alphabetical':
-            return a.title.localeCompare(b.title);
-          default:
-            return 0;
-        }
-      });
+        // Simulate pagination on frontend (since we don't have real backend)
+        const totalResults = allResults.length;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedResults = allResults.slice(startIndex, endIndex);
 
-      setFilteredMusic(results);
+        setFilteredMusic(paginatedResults);
+        setTotalItems(totalResults);
+        setTotalPages(Math.ceil(totalResults / itemsPerPage));
+      } catch (error) {
+        console.error('Error fetching music:', error);
+        setFilteredMusic([]);
+        setTotalItems(0);
+        setTotalPages(1);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchAndFilter();
-  }, [searchQuery, sortBy, searchMusic]);
-
-
-  // Get featured music
-  // const featuredMusic = useMemo(() => {
-  //   return getFeaturedMusic().slice(0, 4);
-  // }, [getFeaturedMusic]);
-
-  // Get trending music
-  // const trendingMusic = useMemo(() => {
-  //   return getTrendingMusic().slice(0, 4);
-  // }, [getTrendingMusic]);
+  }, [searchQuery, sortBy, currentPage, itemsPerPage, searchMusic]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-purple-900">
@@ -287,7 +349,7 @@ const MusicLibraryPage = () => {
             {/* View Controls */}
             <div className="flex items-center space-x-4">
               {/* Sort Dropdown */}
-              {/* <div className="relative">
+              <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -298,10 +360,10 @@ const MusicLibraryPage = () => {
                   <option value="alphabetical">A-Z</option>
                   <option value="duration">Duration</option>
                 </select>
-              </div> */}
+              </div>
 
               {/* View Mode Toggle */}
-              {/* <div className="flex border border-gray-600 rounded-lg overflow-hidden">
+              <div className="flex border border-gray-600 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}
@@ -314,72 +376,38 @@ const MusicLibraryPage = () => {
                 >
                   <List className="w-4 h-4" />
                 </button>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        {/* Featured Section */}
-        {/* {!searchQuery && featuredMusic.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <Star className="w-5 h-5 mr-2 text-yellow-400" />
-              Featured
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredMusic.map(music => (
-                <MusicCard
-                  key={music._id}
-                  music={music}
-                  onLike={handleLike}
-                  isLiked={likedSongs.has(music._id)}
-                  viewMode="grid"
-                />
-              ))}
-            </div>
-          </section>
-        )} */}
-
-        {/* Trending Section */}
-        {/* {!searchQuery && trendingMusic.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-green-400" />
-              Trending Now
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {trendingMusic.map(music => (
-                <MusicCard
-                  key={music._id}
-                  music={music}
-                  onLike={handleLike}
-                  isLiked={likedSongs.has(music._id)}
-                  viewMode="grid"
-                />
-              ))}
-            </div>
-          </section>
-        )} */}
-
-        {/* All Music / Search Results */}
+        {/* Results Header */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-white">
               {searchQuery ? `Search Results for "${searchQuery}"` : 'All Music'}
             </h2>
-            <span className="text-gray-400 text-sm">
-              {filteredMusic.length} songs
-            </span>
+            
+            {/* Results count and pagination info */}
+            <div className="text-gray-400 text-sm">
+              {isLoading ? (
+                'Loading...'
+              ) : (
+                `Page ${currentPage} of ${totalPages} • ${totalItems} songs`
+              )}
+            </div>
           </div>
 
+          {/* Loading State */}
           {isLoading && (
             <div className="flex justify-center py-12">
               <LoadingSpinner size="lg" />
             </div>
           )}
 
+          {/* No Results */}
           {!isLoading && filteredMusic.length === 0 && (
             <div className="text-center py-12">
               <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -388,22 +416,46 @@ const MusicLibraryPage = () => {
             </div>
           )}
 
+          {/* Music Grid/List */}
           {!isLoading && filteredMusic.length > 0 && (
-            <div className={
-              viewMode === 'grid' 
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
-                : "space-y-4"
-            }>
-              {filteredMusic.map(music => (
-                <MusicCard
-                  key={music._id}
-                  music={music}
-                  onLike={handleLike}
-                  isLiked={likedSongs.has(music._id)}
-                  viewMode={viewMode}
-                />
-              ))}
-            </div>
+            <>
+              <div className={
+                viewMode === 'grid' 
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8" 
+                  : "space-y-4 mb-8"
+              }>
+                <AnimatePresence mode="wait">
+                  {filteredMusic.map((music, index) => (
+                    <motion.div
+                      key={`${music._id}-${currentPage}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <MusicCard
+                        music={music}
+                        onLike={handleLike}
+                        isLiked={likedSongs.has(music._id)}
+                        viewMode={viewMode}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                pageSizeOptions={[12, 24, 48, 96]}
+                className="border-t border-gray-700 pt-6"
+              />
+            </>
           )}
         </section>
       </div>
