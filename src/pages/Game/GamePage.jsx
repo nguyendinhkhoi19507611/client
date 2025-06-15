@@ -277,24 +277,35 @@ const GamePage = () => {
 
   // Load music data hoặc sử dụng nhạc mặc định
   useEffect(() => {
-    if (musicId && musicId !== 'default') {
-      setIsLoading(true);
-      // Simulate loading delay
-      setTimeout(() => {
-        const music = getMusicById(musicId);
-        if (music) {
-          setMusic(music);
-        } else {
-          toast.error('Music not found, using default music');
+    const fetchMusic = async () => {
+      if (musicId && musicId !== 'default') {
+        setIsLoading(true);
+  
+        try {
+          const music = await getMusicById(musicId);
+  
+          if (music) {
+            setMusic(music);
+          } else {
+            toast.error('Music not found, using default music');
+            setMusic(defaultMusic);
+          }
+        } catch (err) {
+          toast.error('Error fetching music, using default music');
           setMusic(defaultMusic);
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      }, 1000);
-    } else {
-      // Sử dụng nhạc mặc định
-      setMusic(defaultMusic);
-    }
+  
+      } else {
+        // Sử dụng nhạc mặc định
+        setMusic(defaultMusic);
+      }
+    };
+  
+    fetchMusic();
   }, [musicId, getMusicById, setMusic, defaultMusic]);
+  
 
   // Handle game completion
   useEffect(() => {

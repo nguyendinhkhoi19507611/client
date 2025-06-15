@@ -20,6 +20,7 @@ import { useGame } from '../../contexts/GameContext';
 import { formatTime, formatNumber } from '../../utils/formatters';
 import Button from '../../components/UI/Button';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import { log } from 'tone/build/esm/core/util/Debug';
 
 // Music Card Component - simplified without difficulty
 const MusicCard = ({ music, onPlay, onLike, isLiked, viewMode = 'grid' }) => {
@@ -221,29 +222,35 @@ const MusicLibraryPage = () => {
     });
   };
 
-  // Filter music based on search query
-  const filteredMusic = useMemo(() => {
-    const searchResult = searchMusic({ q: searchQuery });
-    let results = searchResult.music;
-    
-    // Sort results
-    results.sort((a, b) => {
-      switch (sortBy) {
-        case 'popularity':
-          return b.statistics.playCount - a.statistics.playCount;
-        case 'newest':
-          return b._id.localeCompare(a._id); // Mock newest based on ID
-        case 'duration':
-          return a.duration - b.duration;
-        case 'alphabetical':
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
-    
-    return results;
+  const [filteredMusic, setFilteredMusic] = useState([]);
+
+  useEffect(() => {
+    const fetchAndFilter = async () => {
+      const searchResult = await searchMusic({ q: searchQuery });
+      let results = searchResult.music;
+
+      // Sort results
+      results.sort((a, b) => {
+        switch (sortBy) {
+          case 'popularity':
+            return b.statistics.playCount - a.statistics.playCount;
+          case 'newest':
+            return b._id.localeCompare(a._id);
+          case 'duration':
+            return a.duration - b.duration;
+          case 'alphabetical':
+            return a.title.localeCompare(b.title);
+          default:
+            return 0;
+        }
+      });
+
+      setFilteredMusic(results);
+    };
+
+    fetchAndFilter();
   }, [searchQuery, sortBy, searchMusic]);
+
 
   // Get featured music
   // const featuredMusic = useMemo(() => {

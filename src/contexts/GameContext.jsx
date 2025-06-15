@@ -6,6 +6,8 @@ import { useLanguage } from './LanguageContext';
 import defaultMusicFile from '../assets/defaultmusic.mp3';
 import { useAudio } from './AudioContext';
 import { log } from 'tone/build/esm/core/util/Debug';
+import {musicService} from '../services/musicService'; 
+import { da } from 'date-fns/locale';
 
 const GameContext = createContext();
 
@@ -291,7 +293,8 @@ export const GameProvider = ({ children }) => {
     // Sử dụng nhạc mặc định nếu không có musicId
     let selectedMusic = defaultMusic;
     if (musicId && musicId !== 'default') {
-      const music = getMusicById(musicId);
+      const music = await getMusicById(musicId);
+      console.log(`Selected music:`, music);
       if (music) {
         selectedMusic = music;
       }
@@ -314,14 +317,14 @@ export const GameProvider = ({ children }) => {
     });
 
     const sessionId = Date.now().toString();
-    dispatch({
-      type: GAME_ACTIONS.START_GAME,
-      payload: { sessionId }
-    });
 
     // Phát nhạc nền
     try {
       await playBackgroundMusic(selectedMusic.audioUrl);
+      dispatch({
+        type: GAME_ACTIONS.START_GAME,
+        payload: { sessionId }
+      });
     } catch (error) {
       console.error('Failed to play background music:', error);
       toast.error(t('errors.audioPlaybackFailed'));
@@ -552,22 +555,32 @@ export const GameProvider = ({ children }) => {
   }, [state.progress, state.currentTime, state.duration]);
 
   // Music library functions
-  const getMusicById = useCallback((id) => {
-    if (id === 'default') return defaultMusic;
-    return mockMusicLibrary.find(m => m._id === id) || null;
+  const getMusicById = useCallback(async(id) => {
+    const response = await musicService.getMusicById(id);
+    return response.music || null;
+    
+    // if (id === 'default') return defaultMusic;
+    // return mockMusicLibrary.find(m => m._id === id) || null;
   }, []);
 
-  const searchMusic = useCallback((params) => {
-    let results = [...mockMusicLibrary];
+  const searchMusic = useCallback(async(params) => {
+
+   
+
+    // let results = [...mockMusicLibrary];
     
-    if (params.q) {
-      results = results.filter(m => 
-        m.title.toLowerCase().includes(params.q.toLowerCase()) ||
-        m.artist.toLowerCase().includes(params.q.toLowerCase())
-      );
-    }
+    // if (params.q) {
+    //   results = results.filter(m => 
+    //     m.title.toLowerCase().includes(params.q.toLowerCase()) ||
+    //     m.artist.toLowerCase().includes(params.q.toLowerCase())
+    //   );
+    // }
     
-    return { music: results, total: results.length };
+    // return { music: results, total: results.length };
+
+    const data = await musicService.searchMusic(params);
+    return data;
+
   }, []);
 
   const getFeaturedMusic = useCallback(() => {

@@ -1,4 +1,5 @@
-// src/services/musicService.js - Mock music service
+import api from './index';
+
 export const musicService = {
     getMusicStats: async () => ({
       stats: {
@@ -9,12 +10,19 @@ export const musicService = {
       }
     }),
     
-    searchMusic: async (params) => ({
-      music: [],
-      total: 0
-    }),
-    
-    getMusicById: async (id) => null,
+    searchMusic: async (params) => {
+      // Simulating a search operation
+      const response = await api.get('/music/search', params);
+      return response.data;
+      // return response.filter(song => song.title.toLowerCase().includes(params.query.toLowerCase()));
+    },
+
+    getMusicById: async (id) => {
+      // Simulating fetching music by ID
+      console.log(`Fetching music with ID: ${id}`);
+      const response = await api.get(`/music/${id}`);
+      return response.data;
+    },
     
     getFeaturedMusic: async () => {
       return []
