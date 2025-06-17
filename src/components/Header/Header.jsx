@@ -125,11 +125,11 @@ const Header = () => {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-2 transition-colors"
                   >
-                    <img
+                    {/* <img
                       src={user.avatar}
                       alt={user.username}
                       className="w-8 h-8 rounded-full object-cover"
-                    />
+                    /> */}
                     <div className="hidden sm:block text-left">
                       <div className="text-white text-sm font-medium flex items-center">
                         {user.username}
@@ -140,9 +140,9 @@ const Header = () => {
                           <Shield className="w-4 h-4 text-red-400 ml-1" />
                         )}
                       </div>
-                      <div className="text-gray-400 text-xs">
+                      {/* <div className="text-gray-400 text-xs">
                         Level {user.statistics?.level || 1}
-                      </div>
+                      </div> */}
                     </div>
                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                   </button>
@@ -165,11 +165,11 @@ const Header = () => {
                           {/* User Info */}
                           <div className="p-4 border-b border-gray-700">
                             <div className="flex items-center space-x-3">
-                              <img
+                              {/* <img
                                 src={user.avatar}
                                 alt={user.username}
                                 className="w-12 h-12 rounded-full object-cover"
-                              />
+                              /> */}
                               <div>
                                 <div className="text-white font-medium flex items-center">
                                   {user.fullName}
@@ -282,11 +282,11 @@ const Header = () => {
                   <>
                     <div className="border-t border-gray-800 pt-4 mt-4">
                       <div className="flex items-center space-x-3 px-4 py-2 mb-3">
-                        <img
+                        {/* <img
                           src={user.avatar}
                           alt={user.username}
                           className="w-10 h-10 rounded-full object-cover"
-                        />
+                        /> */}
                         <div>
                           <div className="text-white font-medium">{user.fullName}</div>
                           <div className="text-green-400 text-sm">

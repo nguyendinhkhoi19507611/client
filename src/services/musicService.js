@@ -12,7 +12,8 @@ export const musicService = {
     
     searchMusic: async (params) => {
       // Simulating a search operation
-      const response = await api.get('/music/search', params);
+      console.log(`Searching music with params:`, params);
+      const response = await api.get(`/music/search?page=${params.page}&q=${params.q}`, params);
       return response.data;
       // return response.filter(song => song.title.toLowerCase().includes(params.query.toLowerCase()));
     },

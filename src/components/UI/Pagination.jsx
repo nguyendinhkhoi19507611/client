@@ -86,13 +86,12 @@ const Pagination = ({
   return (
     <div className={clsx('flex flex-col sm:flex-row items-center justify-between gap-4', className)}>
       {/* Info Section */}
-      {showInfo && (
+      {/* {showInfo && (
         <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-400">
           <span>
             Showing {startItem}-{endItem} of {totalItems} results
           </span>
           
-          {/* Page Size Selector */}
           {showSizeSelector && onPageSizeChange && (
             <div className="flex items-center gap-2">
               <span>Show:</span>
@@ -111,7 +110,7 @@ const Pagination = ({
             </div>
           )}
         </div>
-      )}
+      )} */}
 
       {/* Pagination Controls */}
       <nav className="flex items-center gap-1">
