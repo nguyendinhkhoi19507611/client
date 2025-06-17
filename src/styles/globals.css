@@ -1054,3 +1054,693 @@ input[type="radio"]:checked::after {
     letter-spacing: 1px;
   }
 }
+/* Enhanced Piano Styles - Add to src/styles/globals.css */
+
+/* Music Notation Styles */
+.music-notation {
+  font-family: 'Times New Roman', serif;
+  background: linear-gradient(to bottom, 
+    rgba(17, 24, 39, 0.95) 0%, 
+    rgba(17, 24, 39, 0.8) 50%, 
+    transparent 100%
+  );
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.music-notation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center top, 
+    rgba(59, 130, 246, 0.1) 0%, 
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Staff line animations */
+.music-notation .staff-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.music-notation .staff-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(59, 130, 246, 0.3) 50%, 
+    transparent 100%
+  );
+  animation: staffShimmer 3s ease-in-out infinite;
+}
+
+@keyframes staffShimmer {
+  0% { left: -100%; }
+  50% { left: 0%; }
+  100% { left: 100%; }
+}
+
+/* Enhanced Piano Frame */
+.piano-frame {
+  background: linear-gradient(135deg, 
+    #374151 0%, 
+    #1f2937 25%, 
+    #111827 50%, 
+    #0f172a 75%, 
+    #020617 100%
+  );
+  border: 3px solid #4b5563;
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.piano-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(239, 68, 68, 0.4) 16.66%, 
+    rgba(59, 130, 246, 0.4) 33.33%, 
+    rgba(16, 185, 129, 0.4) 50%, 
+    rgba(168, 85, 247, 0.4) 66.66%, 
+    rgba(251, 191, 36, 0.4) 83.33%, 
+    transparent 100%
+  );
+  border-radius: 20px 20px 0 0;
+  animation: colorFlow 4s ease-in-out infinite;
+}
+
+@keyframes colorFlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.piano-frame::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(59, 130, 246, 0.6) 50%, 
+    transparent 100%
+  );
+  border-radius: 0 0 20px 20px;
+}
+
+/* Piano Keyboard Enhanced */
+.piano-keyboard {
+  background: linear-gradient(to bottom, 
+    #000000 0%, 
+    #1a1a1a 50%, 
+    #0a0a0a 100%
+  );
+  border-radius: 12px;
+  box-shadow: 
+    inset 0 4px 12px rgba(0, 0, 0, 0.8),
+    inset 0 -2px 6px rgba(255, 255, 255, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.piano-keyboard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    rgba(239, 68, 68, 0.3) 0%, 
+    rgba(59, 130, 246, 0.3) 50%, 
+    rgba(16, 185, 129, 0.3) 100%
+  );
+  border-radius: 12px 12px 0 0;
+}
+
+/* Enhanced White Keys */
+.piano-key-white-enhanced {
+  background: linear-gradient(to bottom, 
+    #ffffff 0%, 
+    #f8fafc 25%, 
+    #f1f5f9 75%, 
+    #e2e8f0 100%
+  );
+  border: 1px solid #cbd5e1;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.1),
+    0 3px 8px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.piano-key-white-enhanced:hover {
+  background: linear-gradient(to bottom, 
+    #f8fafc 0%, 
+    #f1f5f9 25%, 
+    #e2e8f0 75%, 
+    #cbd5e1 100%
+  );
+  box-shadow: 
+    inset 0 2px 4px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.piano-key-white-enhanced.pressed {
+  background: linear-gradient(to bottom, 
+    #3b82f6 0%, 
+    #2563eb 25%, 
+    #1d4ed8 75%, 
+    #1e40af 100%
+  );
+  color: white;
+  transform: translateY(3px) translateZ(-2px);
+  box-shadow: 
+    inset 0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Octave-specific white key colors */
+.piano-key-white-enhanced.octave-3 {
+  background: linear-gradient(to bottom, 
+    #fef2f2 0%, 
+    #fecaca 25%, 
+    #fca5a5 75%, 
+    #f87171 100%
+  );
+}
+
+.piano-key-white-enhanced.octave-3.pressed {
+  background: linear-gradient(to bottom, 
+    #ef4444 0%, 
+    #dc2626 25%, 
+    #b91c1c 75%, 
+    #991b1b 100%
+  );
+}
+
+.piano-key-white-enhanced.octave-4 {
+  background: linear-gradient(to bottom, 
+    #eff6ff 0%, 
+    #dbeafe 25%, 
+    #bfdbfe 75%, 
+    #93c5fd 100%
+  );
+}
+
+.piano-key-white-enhanced.octave-4.pressed {
+  background: linear-gradient(to bottom, 
+    #3b82f6 0%, 
+    #2563eb 25%, 
+    #1d4ed8 75%, 
+    #1e40af 100%
+  );
+}
+
+.piano-key-white-enhanced.octave-5 {
+  background: linear-gradient(to bottom, 
+    #f0fdf4 0%, 
+    #dcfce7 25%, 
+    #bbf7d0 75%, 
+    #86efac 100%
+  );
+}
+
+.piano-key-white-enhanced.octave-5.pressed {
+  background: linear-gradient(to bottom, 
+    #10b981 0%, 
+    #059669 25%, 
+    #047857 75%, 
+    #065f46 100%
+  );
+}
+
+/* Enhanced Black Keys */
+.piano-key-black-enhanced {
+  background: linear-gradient(to bottom, 
+    #374151 0%, 
+    #1f2937 25%, 
+    #111827 75%, 
+    #0f172a 100%
+  );
+  border: 1px solid #4b5563;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 
+    inset 0 1px 3px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.piano-key-black-enhanced:hover {
+  background: linear-gradient(to bottom, 
+    #4b5563 0%, 
+    #374151 25%, 
+    #1f2937 75%, 
+    #111827 100%
+  );
+  box-shadow: 
+    inset 0 1px 3px rgba(255, 255, 255, 0.15),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.6),
+    0 3px 10px rgba(0, 0, 0, 0.6),
+    0 1px 4px rgba(0, 0, 0, 0.4);
+  transform: translateY(-0.5px);
+}
+
+.piano-key-black-enhanced.pressed {
+  background: linear-gradient(to bottom, 
+    #3b82f6 0%, 
+    #2563eb 25%, 
+    #1d4ed8 75%, 
+    #1e40af 100%
+  );
+  color: white;
+  transform: translateY(2px) translateZ(-1px);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Key Labels Enhanced */
+.piano-key-label {
+  position: absolute;
+  font-weight: 700;
+  font-size: 11px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.1s ease;
+  user-select: none;
+  pointer-events: none;
+}
+
+.piano-key-note-label {
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.8;
+  transition: all 0.1s ease;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Octave Indicators */
+.octave-indicator {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.octave-indicator.octave-3 {
+  background: radial-gradient(circle, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.octave-indicator.octave-4 {
+  background: radial-gradient(circle, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+}
+
+.octave-indicator.octave-5 {
+  background: radial-gradient(circle, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+/* Press Effects Enhanced */
+.key-press-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, 
+    rgba(255, 255, 255, 0.8) 0%, 
+    rgba(255, 255, 255, 0.4) 50%, 
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: rippleEffect 0.6s ease-out;
+}
+
+@keyframes rippleEffect {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+  }
+}
+
+.key-press-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(45deg, 
+    rgba(59, 130, 246, 0.3) 0%, 
+    rgba(168, 85, 247, 0.3) 100%
+  );
+  filter: blur(4px);
+  animation: glowPulse 0.3s ease-out;
+}
+
+@keyframes glowPulse {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+/* Music Notes Animation */
+.music-note {
+  position: absolute;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 0 8px currentColor;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.music-note.note-octave-3 { color: #ef4444; }
+.music-note.note-octave-4 { color: #3b82f6; }
+.music-note.note-octave-5 { color: #10b981; }
+
+@keyframes noteFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-100px) scale(1) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-200px) scale(1.2) rotate(360deg);
+  }
+}
+
+.floating-note {
+  animation: noteFloat 2s ease-out forwards;
+}
+
+/* Piano Brand Enhanced */
+.piano-brand-enhanced {
+  background: linear-gradient(135deg, 
+    rgba(17, 24, 39, 0.8) 0%, 
+    rgba(31, 41, 55, 0.9) 50%, 
+    rgba(17, 24, 39, 0.8) 100%
+  );
+  border: 2px solid rgba(75, 85, 99, 0.5);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.piano-brand-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(59, 130, 246, 0.1) 50%, 
+    transparent 100%
+  );
+  animation: brandShine 3s ease-in-out infinite;
+}
+
+@keyframes brandShine {
+  0% { left: -100%; }
+  50% { left: 0%; }
+  100% { left: 100%; }
+}
+
+.piano-brand-title {
+  color: #f9fafb;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin: 0;
+  text-shadow: 
+    0 0 10px rgba(59, 130, 246, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  0% { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 2px 4px rgba(0, 0, 0, 0.5); }
+  100% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 2px 4px rgba(0, 0, 0, 0.5); }
+}
+
+.piano-brand-lights {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.brand-light {
+  width: 12px;
+  height: 4px;
+  border-radius: 2px;
+  animation: lightPulse 2s ease-in-out infinite;
+}
+
+.brand-light:nth-child(1) {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  animation-delay: 0s;
+}
+
+.brand-light:nth-child(2) {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  animation-delay: 0.3s;
+}
+
+.brand-light:nth-child(3) {
+  background: linear-gradient(90deg, #10b981, #34d399);
+  animation-delay: 0.6s;
+}
+
+@keyframes lightPulse {
+  0%, 100% { 
+    opacity: 0.4; 
+    transform: scale(1);
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.1);
+    box-shadow: 0 0 15px currentColor;
+  }
+}
+
+/* Controls Enhanced */
+.piano-controls-enhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  margin-top: 20px;
+  background: rgba(17, 24, 39, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  backdrop-filter: blur(5px);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.octave-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.octave-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.octave-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: legendPulse 2s ease-in-out infinite;
+}
+
+@keyframes legendPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.status-indicator-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(31, 41, 55, 0.5);
+  border-radius: 6px;
+  border: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-dot.active {
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  animation: statusPulse 1.5s ease-in-out infinite;
+}
+
+.status-dot.inactive {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+@keyframes statusPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .piano-keyboard {
+    height: 100px !important;
+  }
+  
+  .piano-key-white-enhanced {
+    height: 80px;
+  }
+  
+  .piano-key-black-enhanced {
+    height: 50px;
+    width: 20px;
+  }
+  
+  .piano-brand-title {
+    font-size: 16px;
+    letter-spacing: 2px;
+  }
+}
+
+@media (max-width: 768px) {
+  .piano-keyboard {
+    height: 80px !important;
+  }
+  
+  .piano-key-white-enhanced {
+    height: 60px;
+  }
+  
+  .piano-key-black-enhanced {
+    height: 35px;
+    width: 16px;
+  }
+  
+  .piano-frame {
+    padding: 12px;
+  }
+  
+  .piano-brand-title {
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  
+  .octave-legend {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .music-notation {
+    height: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .piano-keyboard {
+    height: 70px !important;
+  }
+  
+  .piano-key-white-enhanced {
+    height: 50px;
+  }
+  
+  .piano-key-black-enhanced {
+    height: 30px;
+    width: 12px;
+  }
+  
+  .piano-frame {
+    padding: 8px;
+  }
+  
+  .piano-brand-enhanced {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .piano-brand-title {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+  
+  .brand-light {
+    width: 8px;
+    height: 3px;
+  }
+  
+  .music-notation {
+    height: 60px;
+  }
+}
