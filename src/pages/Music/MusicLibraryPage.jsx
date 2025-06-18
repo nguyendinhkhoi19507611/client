@@ -283,31 +283,65 @@ const MusicLibraryPage = () => {
         console.log('API Response:', searchResult);
 
         // Extract data from API response
-        const musicList = searchResult.music || [];
-        const total = searchResult.totalItems || musicList.length;
-        const pages = Math.ceil(total / itemsPerPage);
+        let musicList = searchResult.music || [];
+        const apiTotal = searchResult.totalItems;
+        
+        // If API doesn't handle pagination properly, do client-side pagination
+        const needsClientPagination = !apiTotal || musicList.length > itemsPerPage;
+        
+        if (needsClientPagination) {
+          console.log('Applying client-side pagination');
+          
+          // Apply client-side sorting first
+          const allMusic = [...musicList].sort((a, b) => {
+            switch (sortBy) {
+              case 'popularity':
+                return (b.statistics?.playCount || 0) - (a.statistics?.playCount || 0);
+              case 'newest':
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+              case 'duration':
+                return (a.duration || 0) - (b.duration || 0);
+              case 'alphabetical':
+                return (a.title || '').localeCompare(b.title || '');
+              default:
+                return 0;
+            }
+          });
+          
+          // Apply client-side pagination
+          const startIndex = (currentPage - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          const paginatedMusic = allMusic.slice(startIndex, endIndex);
+          
+          setMusicData(paginatedMusic);
+          setTotalItems(allMusic.length);
+          setTotalPages(Math.ceil(allMusic.length / itemsPerPage));
+          
+          console.log(`Client pagination: showing ${paginatedMusic.length} of ${allMusic.length} songs, page ${currentPage}`);
+        } else {
+          // API handles pagination properly
+          const sortedMusic = [...musicList].sort((a, b) => {
+            switch (sortBy) {
+              case 'popularity':
+                return (b.statistics?.playCount || 0) - (a.statistics?.playCount || 0);
+              case 'newest':
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+              case 'duration':
+                return (a.duration || 0) - (b.duration || 0);
+              case 'alphabetical':
+                return (a.title || '').localeCompare(b.title || '');
+              default:
+                return 0;
+            }
+          });
+          
+          setMusicData(sortedMusic);
+          setTotalItems(apiTotal);
+          setTotalPages(Math.ceil(apiTotal / itemsPerPage));
+          
+          console.log(`API pagination: showing ${sortedMusic.length} songs, total: ${apiTotal}`);
+        }
 
-        // Apply client-side sorting if needed
-        const sortedMusic = [...musicList].sort((a, b) => {
-          switch (sortBy) {
-            case 'popularity':
-              return (b.statistics?.playCount || 0) - (a.statistics?.playCount || 0);
-            case 'newest':
-              return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-            case 'duration':
-              return (a.duration || 0) - (b.duration || 0);
-            case 'alphabetical':
-              return (a.title || '').localeCompare(b.title || '');
-            default:
-              return 0;
-          }
-        });
-
-        setMusicData(sortedMusic);
-        setTotalItems(total);
-        setTotalPages(pages);
-
-        console.log(`Loaded ${sortedMusic.length} songs, total: ${total}, pages: ${pages}`);
       } catch (error) {
         console.error('Error fetching music:', error);
         setMusicData([]);
@@ -403,7 +437,7 @@ const MusicLibraryPage = () => {
               {isLoading ? (
                 'Loading...'
               ) : (
-                `Page ${currentPage} of ${totalPages} • ${totalItems} songs`
+                `Showing ${musicData.length} of ${totalItems} songs • Page ${currentPage}/${totalPages}`
               )}
             </div>
           </div>
