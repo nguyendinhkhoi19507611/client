@@ -636,43 +636,6 @@ const GamePage = () => {
           </div>
         </div>
 
-        {/* Enhanced Help Text */}
-        <div className="text-center mt-6 space-y-2">
-          <p className="text-gray-400 text-sm">
-            🎹 Use keyboard keys to play the enhanced 3-octave piano! Each key press = 10+ points
-          </p>
-          <div className="flex justify-center space-x-6 text-xs text-gray-500">
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-              <span>Octave 3 (Q-U, 1-5)</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span>Octave 4 (A-J, 6-0)</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span>Octave 5 (Z-M, I-L)</span>
-            </div>
-          </div>
-          {displayMusic._id === 'default' && (
-            <p className="text-yellow-400 text-sm mt-2">
-              🎵 Playing default enhanced track. <button 
-                onClick={() => navigate('/music')} 
-                className="underline hover:no-underline"
-              >
-                Browse music library
-              </button> to choose a different song.
-            </p>
-          )}
-          
-          {gameSettings.showNotation && (
-            <p className="text-blue-400 text-sm">
-              🎼 Watch the musical notation above to see your notes moving from right to left!
-            </p>
-          )}
-        </div>
-
         {/* Piano Size Controls */}
         <div className="flex justify-center mt-4">
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 flex items-center space-x-3">
