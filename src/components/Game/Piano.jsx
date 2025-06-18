@@ -1,11 +1,11 @@
-// src/components/Game/Piano.jsx - Enhanced piano with more keys and music notation display
+// src/components/Game/Piano.jsx - Fixed version với Music Notation hợp lý
 import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { useAudio } from '../../contexts/AudioContext';
 import { useGame } from '../../contexts/GameContext';
 
-// Extended piano layout with 3 octaves (36 keys total)
+// Extended piano layout với 3 octaves (36 keys total)
 const PIANO_LAYOUT = [
   // Octave 3
   { note: 'C3', key: 'Q', isBlack: false, position: 0, octave: 3 },
@@ -71,47 +71,53 @@ const NOTE_FREQUENCIES = {
   'A#5': 932.33, 'B5': 987.77
 };
 
-// Music notation component
-const MusicNotation = ({ activeNotes, recentNotes }) => {
-  const [notes, setNotes] = useState([]);
+// Music notation component - Đã được sửa lại để hợp lý hơn
+const MusicNotation = ({ activeNotes = [], showNotation = true }) => {
+  const [movingNotes, setMovingNotes] = useState([]);
   const notationRef = useRef(null);
 
-  // Add new notes when keys are pressed
+  // Xóa tất cả activeNotes logic vì nó không cần thiết
+  // Chỉ tạo note mới khi có activeNotes thay đổi
   useEffect(() => {
-    if (recentNotes.length > 0) {
-      const latestNote = recentNotes[recentNotes.length - 1];
-      const newNote = {
-        id: Date.now() + Math.random(),
-        note: latestNote.key,
-        startTime: Date.now(),
-        y: getStaffPosition(latestNote.key),
-        color: getOctaveColor(latestNote.key)
-      };
+    if (!showNotation || activeNotes.length === 0) return;
 
-      setNotes(prev => [...prev.slice(-20), newNote]); // Keep only last 20 notes
-    }
-  }, [recentNotes]);
+    const latestNote = activeNotes[activeNotes.length - 1];
+    if (!latestNote) return;
 
-  // Clean up old notes
+    const newNote = {
+      id: Date.now() + Math.random(),
+      note: latestNote,
+      startTime: Date.now(),
+      y: getStaffPosition(latestNote),
+      color: getOctaveColor(latestNote)
+    };
+
+    setMovingNotes(prev => [...prev.slice(-15), newNote]); // Giữ tối đa 15 notes
+  }, [activeNotes, showNotation]);
+
+  // Cleanup old notes
   useEffect(() => {
+    if (!showNotation) return;
+    
     const interval = setInterval(() => {
-      setNotes(prev => prev.filter(note => Date.now() - note.startTime < 8000));
-    }, 100);
+      const now = Date.now();
+      setMovingNotes(prev => prev.filter(note => now - note.startTime < 8000));
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [showNotation]);
 
   const getStaffPosition = (note) => {
     const notePositions = {
-      // Octave 3 - below bass staff
+      // Octave 3 - dưới bass staff
       'C3': 85, 'C#3': 82, 'D3': 80, 'D#3': 77, 'E3': 75, 'F3': 72,
       'F#3': 70, 'G3': 67, 'G#3': 65, 'A3': 62, 'A#3': 60, 'B3': 57,
       
-      // Octave 4 - on bass staff  
+      // Octave 4 - trên bass staff  
       'C4': 55, 'C#4': 52, 'D4': 50, 'D#4': 47, 'E4': 45, 'F4': 42,
       'F#4': 40, 'G4': 37, 'G#4': 35, 'A4': 32, 'A#4': 30, 'B4': 27,
       
-      // Octave 5 - on treble staff
+      // Octave 5 - trên treble staff
       'C5': 25, 'C#5': 22, 'D5': 20, 'D#5': 17, 'E5': 15, 'F5': 12,
       'F#5': 10, 'G5': 7, 'G#5': 5, 'A5': 2, 'A#5': 0, 'B5': -3
     };
@@ -119,14 +125,16 @@ const MusicNotation = ({ activeNotes, recentNotes }) => {
   };
 
   const getOctaveColor = (note) => {
-    if (note.includes('3')) return '#ef4444'; // Red for octave 3
-    if (note.includes('4')) return '#3b82f6'; // Blue for octave 4
-    if (note.includes('5')) return '#10b981'; // Green for octave 5
-    return '#8b5cf6'; // Purple for others
+    if (note.includes('3')) return '#ef4444'; // Red cho octave 3
+    if (note.includes('4')) return '#3b82f6'; // Blue cho octave 4
+    if (note.includes('5')) return '#10b981'; // Green cho octave 5
+    return '#8b5cf6'; // Purple cho khác
   };
 
+  if (!showNotation) return null;
+
   return (
-    <div className="music-notation absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-gray-900/95 via-gray-800/90 to-transparent overflow-hidden border-b border-blue-500/30">
+    <div className="music-notation relative w-full h-40 bg-gradient-to-b from-gray-900/95 via-gray-800/90 to-transparent overflow-hidden border border-blue-500/30 rounded-lg">
       <div ref={notationRef} className="relative w-full h-full">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-blue-900/20"></div>
@@ -136,12 +144,12 @@ const MusicNotation = ({ activeNotes, recentNotes }) => {
           {[10, 15, 20, 25, 30].map((y, index) => (
             <div
               key={`treble-${index}`}
-              className="absolute w-full h-px bg-gray-400"
+              className="absolute w-full h-px bg-gray-400/60"
               style={{ top: `${y}%` }}
             />
           ))}
           {/* Treble clef */}
-          <div className="absolute left-6 top-2 text-4xl text-gray-300 font-serif">
+          <div className="absolute left-6 top-2 text-3xl text-gray-300 font-serif">
             𝄞
           </div>
         </div>
@@ -151,12 +159,12 @@ const MusicNotation = ({ activeNotes, recentNotes }) => {
           {[45, 50, 55, 60, 65].map((y, index) => (
             <div
               key={`bass-${index}`}
-              className="absolute w-full h-px bg-gray-400"
+              className="absolute w-full h-px bg-gray-400/60"
               style={{ top: `${y}%` }}
             />
           ))}
           {/* Bass clef */}
-          <div className="absolute left-6 top-8 text-4xl text-gray-300 font-serif">
+          <div className="absolute left-6 top-8 text-3xl text-gray-300 font-serif">
             𝄢
           </div>
         </div>
@@ -170,57 +178,64 @@ const MusicNotation = ({ activeNotes, recentNotes }) => {
           />
         ))}
 
-        {/* Current playing indicator line */}
+        {/* Current playing indicator line - Đây là vị trí nốt sẽ "hit" */}
         <div className="absolute left-24 top-0 bottom-0 w-0.5 bg-yellow-400 opacity-80 z-10">
           <div className="absolute -top-1 -left-2 w-5 h-3 bg-yellow-400 rounded-t-sm"></div>
           <div className="absolute -bottom-1 -left-2 w-5 h-3 bg-yellow-400 rounded-b-sm"></div>
         </div>
 
-        {/* Moving notes */}
+        {/* Moving notes - DUY NHẤT chỗ này hiển thị notes */}
         <AnimatePresence>
-          {notes.map(note => (
+          {movingNotes.map(note => (
             <motion.div
               key={note.id}
-              initial={{ x: '100%', scale: 0, opacity: 0 }}
+              initial={{ 
+                x: '100%', 
+                scale: 0, 
+                opacity: 0 
+              }}
               animate={{ 
                 x: '-120px',
                 scale: 1,
                 opacity: 1,
                 y: `${note.y}%`
               }}
-              exit={{ opacity: 0, scale: 0 }}
+              exit={{ 
+                opacity: 0, 
+                scale: 0 
+              }}
               transition={{ 
                 x: { duration: 6, ease: 'linear' },
                 scale: { duration: 0.3 },
                 opacity: { duration: 0.3 }
               }}
-              className="absolute w-8 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg z-20"
+              className="absolute w-6 h-4 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg z-20"
               style={{ 
                 backgroundColor: note.color,
                 top: 0,
-                boxShadow: `0 0 15px ${note.color}80, inset 0 2px 4px rgba(255,255,255,0.3)`
+                boxShadow: `0 0 12px ${note.color}80, inset 0 1px 2px rgba(255,255,255,0.3)`
               }}
             >
-              <span className="drop-shadow-sm">♪</span>
+              ♪
             </motion.div>
           ))}
         </AnimatePresence>
 
         {/* Time signatures */}
-        <div className="absolute left-32 top-2 text-gray-300 text-sm font-mono">
-          <div className="text-center">
+        <div className="absolute left-32 top-2 text-gray-300 text-xs font-mono">
+          <div className="text-center leading-3">
             <div>4</div>
             <div>4</div>
           </div>
         </div>
-        <div className="absolute left-32 top-20 text-gray-300 text-sm font-mono">
-          <div className="text-center">
+        <div className="absolute left-32 top-20 text-gray-300 text-xs font-mono">
+          <div className="text-center leading-3">
             <div>4</div>
             <div>4</div>
           </div>
         </div>
 
-        {/* Key signature (C major - no sharps/flats) */}
+        {/* Key signature */}
         <div className="absolute left-40 top-1 text-gray-400 text-xs">
           C Major
         </div>
@@ -229,7 +244,7 @@ const MusicNotation = ({ activeNotes, recentNotes }) => {
   );
 };
 
-// White Piano Key Component
+// White Piano Key Component - Giữ nguyên
 const WhitePianoKey = ({ 
   keyData, 
   isPressed = false, 
@@ -352,7 +367,7 @@ const WhitePianoKey = ({
   );
 };
 
-// Black Piano Key Component
+// Black Piano Key Component - Giữ nguyên
 const BlackPianoKey = ({ 
   keyData, 
   isPressed = false, 
@@ -482,7 +497,10 @@ const Piano = ({
     if (disabled) return;
     
     // Add to recent notes for notation display
-    setRecentNotes(prev => [...prev.slice(-10), { key: note, timestamp: Date.now() }]);
+    setRecentNotes(prev => {
+      const newNotes = [...prev, note];
+      return newNotes.slice(-10); // Keep only last 10 notes
+    });
     
     // Play audio
     if (gameSettings?.soundEnabled) {
@@ -547,11 +565,11 @@ const Piano = ({
 
   return (
     <div className={clsx('piano-container relative max-w-7xl mx-auto', className)}>
-      {/* Music Notation Display */}
+      {/* Music Notation Display - CHỈ 1 chỗ duy nhất */}
       {showNotation && (
         <MusicNotation 
-          activeNotes={pressedKeys}
-          recentNotes={recentNotes}
+          activeNotes={recentNotes}
+          showNotation={showNotation}
         />
       )}
 
@@ -639,7 +657,7 @@ const Piano = ({
   );
 };
 
-// Performance optimized piano for game mode với hệ thống nốt nhạc
+// Performance optimized piano for game mode
 export const GamePiano = React.memo(({ 
   onKeystroke,
   gameState,
@@ -647,7 +665,7 @@ export const GamePiano = React.memo(({
   showNotation = true
 }) => {
   const [pressedKeys, setPressedKeys] = useState(new Set());
-  const [musicNotes, setMusicNotes] = useState([]);
+  const [activeNotes, setActiveNotes] = useState([]);
   const { isGameActive, processKeystroke } = useGame();
   
   const handleKeyPress = useCallback(async (note) => {
@@ -664,17 +682,8 @@ export const GamePiano = React.memo(({
     
     setPressedKeys(prev => new Set([...prev, note]));
     
-    // Add note to music notation
-    if (showNotation) {
-      const newNote = {
-        id: timestamp + Math.random(),
-        note: note,
-        startTime: timestamp,
-        y: getStaffPositionForNote(note),
-        color: getColorForNote(note)
-      };
-      setMusicNotes(prev => [...prev.slice(-15), newNote]);
-    }
+    // Add note để hiển thị trên notation
+    setActiveNotes(prev => [...prev, note]);
     
     if (processKeystroke) {
       await processKeystroke(keystrokeData);
@@ -691,7 +700,7 @@ export const GamePiano = React.memo(({
         return newSet;
       });
     }, 150);
-  }, [isGameActive, processKeystroke, onKeystroke, showNotation]);
+  }, [isGameActive, processKeystroke, onKeystroke]);
 
   const handleKeyRelease = useCallback((note) => {
     setPressedKeys(prev => {
@@ -701,87 +710,15 @@ export const GamePiano = React.memo(({
     });
   }, []);
 
-  // Clean up old notes
-  useEffect(() => {
-    if (!showNotation) return;
-    
-    const interval = setInterval(() => {
-      setMusicNotes(prev => prev.filter(note => Date.now() - note.startTime < 8000));
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [showNotation]);
-
-  const getStaffPositionForNote = (note) => {
-    const positions = {
-      // Octave 3 - bass staff area
-      'C3': 80, 'C#3': 77, 'D3': 75, 'D#3': 72, 'E3': 70, 'F3': 67,
-      'F#3': 65, 'G3': 62, 'G#3': 60, 'A3': 57, 'A#3': 55, 'B3': 52,
-      
-      // Octave 4 - middle area
-      'C4': 50, 'C#4': 47, 'D4': 45, 'D#4': 42, 'E4': 40, 'F4': 37,
-      'F#4': 35, 'G4': 32, 'G#4': 30, 'A4': 27, 'A#4': 25, 'B4': 22,
-      
-      // Octave 5 - treble staff area
-      'C5': 20, 'C#5': 17, 'D5': 15, 'D#5': 12, 'E5': 10, 'F5': 7,
-      'F#5': 5, 'G5': 2, 'G#5': 0, 'A5': -3, 'A#5': -5, 'B5': -8
-    };
-    return positions[note] || 40;
-  };
-
-  const getColorForNote = (note) => {
-    if (note.includes('3')) return '#ef4444'; // Red
-    if (note.includes('4')) return '#3b82f6'; // Blue  
-    if (note.includes('5')) return '#10b981'; // Green
-    return '#8b5cf6';
-  };
-
   return (
     <div className="game-piano-container relative">
-      {/* Custom Music Notation Display */}
-      {showNotation && isGameActive() && (
-        <div className="music-notation-overlay absolute -top-44 left-0 right-0 h-40 z-30 pointer-events-none">
-          <div className="relative w-full h-full bg-gradient-to-b from-gray-900/95 via-gray-800/90 to-transparent rounded-lg border border-blue-500/30 overflow-hidden">
-            {/* Moving notes animation */}
-            <AnimatePresence>
-              {musicNotes.map(note => (
-                <motion.div
-                  key={note.id}
-                  initial={{ x: '100%', scale: 0, opacity: 0 }}
-                  animate={{ 
-                    x: '-120px',
-                    scale: 1,
-                    opacity: 1,
-                    y: `${note.y}%`
-                  }}
-                  exit={{ opacity: 0, scale: 0 }}
-                  transition={{ 
-                    x: { duration: 6, ease: 'linear' },
-                    scale: { duration: 0.3 }
-                  }}
-                  className="absolute w-8 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg z-20"
-                  style={{ 
-                    backgroundColor: note.color,
-                    top: 0,
-                    boxShadow: `0 0 15px ${note.color}80`,
-                    border: '2px solid rgba(255,255,255,0.3)'
-                  }}
-                >
-                  ♪
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </div>
-      )}
-
       <Piano
         onKeyPress={handleKeyPress}
         onKeyRelease={handleKeyRelease}
         pressedKeys={pressedKeys}
         disabled={!isGameActive()}
         className="game-piano"
-        showNotation={false} // Disable built-in notation since we're using custom
+        showNotation={showNotation}
       />
       
       {showGuide && (

@@ -1,4 +1,4 @@
-// src/pages/Game/GamePage.jsx - Updated to use enhanced piano
+// src/pages/Game/GamePage.jsx - Updated to remove duplicate notation
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -139,21 +139,6 @@ const GameSettingsModal = ({ isOpen, onClose, onSave }) => {
               <option value="large">Large</option>
             </select>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Note Animation Speed
-            </label>
-            <select
-              value={settings.noteSpeed}
-              onChange={(e) => setSettings(prev => ({ ...prev, noteSpeed: e.target.value }))}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-            >
-              <option value="slow">Slow</option>
-              <option value="medium">Medium</option>
-              <option value="fast">Fast</option>
-            </select>
-          </div>
         </div>
 
         {/* Action Buttons */}
@@ -257,34 +242,6 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
           <div className="bg-gray-800 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-yellow-400">{stats.keysPerMinute}</div>
             <div className="text-sm text-gray-400">Keys/Min</div>
-          </div>
-        </div>
-
-        {/* Octave Performance Breakdown */}
-        <div className="bg-gray-800 rounded-lg p-4">
-          <h4 className="font-medium text-white mb-3">Octave Performance</h4>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <span className="text-gray-300">Octave 3 (Low)</span>
-              </div>
-              <span className="text-white">32 keys</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                <span className="text-gray-300">Octave 4 (Mid)</span>
-              </div>
-              <span className="text-white">45 keys</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                <span className="text-gray-300">Octave 5 (High)</span>
-              </div>
-              <span className="text-white">28 keys</span>
-            </div>
           </div>
         </div>
 
@@ -664,82 +621,8 @@ const GamePage = () => {
           </Button>
         </div>
 
-        {/* Enhanced Piano Interface với Music Notation luôn hiển thị */}
+        {/* Enhanced Piano Interface - CHỈ 1 COMPONENT DUY NHẤT */}
         <div className="relative">
-          {/* Music Notation - luôn hiển thị khi game đang chạy */}
-          {(isGameActive() || isGamePaused()) && (
-            <div className="relative mb-4">
-              <div className="music-notation-container relative w-full h-40 bg-gradient-to-b from-gray-900/95 via-gray-800/90 to-transparent overflow-hidden border border-blue-500/30 rounded-lg">
-                {/* Background pattern */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/20 to-blue-900/20"></div>
-                
-                {/* Treble staff */}
-                <div className="absolute top-4 left-0 right-0">
-                  {[10, 15, 20, 25, 30].map((y, index) => (
-                    <div
-                      key={`treble-${index}`}
-                      className="absolute w-full h-px bg-gray-400"
-                      style={{ top: `${y}%` }}
-                    />
-                  ))}
-                  {/* Treble clef */}
-                  <div className="absolute left-6 top-2 text-4xl text-gray-300 font-serif">
-                    𝄞
-                  </div>
-                </div>
-
-                {/* Bass staff */}
-                <div className="absolute top-20 left-0 right-0">
-                  {[45, 50, 55, 60, 65].map((y, index) => (
-                    <div
-                      key={`bass-${index}`}
-                      className="absolute w-full h-px bg-gray-400"
-                      style={{ top: `${y}%` }}
-                    />
-                  ))}
-                  {/* Bass clef */}
-                  <div className="absolute left-6 top-8 text-4xl text-gray-300 font-serif">
-                    𝄢
-                  </div>
-                </div>
-
-                {/* Current playing line */}
-                <div className="absolute left-24 top-0 bottom-0 w-0.5 bg-yellow-400 opacity-80 z-10">
-                  <div className="absolute -top-1 -left-2 w-5 h-3 bg-yellow-400 rounded-t-sm"></div>
-                  <div className="absolute -bottom-1 -left-2 w-5 h-3 bg-yellow-400 rounded-b-sm"></div>
-                </div>
-
-                {/* Bar lines */}
-                {[25, 50, 75].map((x, index) => (
-                  <div
-                    key={`bar-${index}`}
-                    className="absolute h-full w-px bg-gray-500/50"
-                    style={{ left: `${x}%` }}
-                  />
-                ))}
-
-                {/* Time signature */}
-                <div className="absolute left-32 top-2 text-gray-300 text-sm font-mono">
-                  <div className="text-center">
-                    <div>4</div>
-                    <div>4</div>
-                  </div>
-                </div>
-                <div className="absolute left-32 top-20 text-gray-300 text-sm font-mono">
-                  <div className="text-center">
-                    <div>4</div>
-                    <div>4</div>
-                  </div>
-                </div>
-
-                {/* Key signature */}
-                <div className="absolute left-40 top-1 text-gray-400 text-xs">
-                  C Major
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className={`max-w-7xl mx-auto ${
             gameSettings.pianoSize === 'small' ? 'scale-75' : 
             gameSettings.pianoSize === 'large' ? 'scale-110' : 'scale-100'
@@ -748,7 +631,7 @@ const GamePage = () => {
               onKeystroke={handleKeystroke}
               gameState={gameState}
               showGuide={gameSettings.showKeyGuide}
-              showNotation={gameSettings.showNotation && (isGameActive() || isGamePaused())}
+              showNotation={gameSettings.showNotation}
             />
           </div>
         </div>
@@ -785,7 +668,7 @@ const GamePage = () => {
           
           {gameSettings.showNotation && (
             <p className="text-blue-400 text-sm">
-              🎼 Watch the musical notation above to see your notes in real-time!
+              🎼 Watch the musical notation above to see your notes moving from right to left!
             </p>
           )}
         </div>
