@@ -32,6 +32,7 @@ import { useGame, GAME_STATES } from '../../contexts/GameContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAudio } from '../../contexts/AudioContext';
 import { formatTime, formatNumber } from '../../utils/formatters';
+import { set } from 'date-fns';
 
 // Enhanced Game Settings Modal
 const GameSettingsModal = ({ isOpen, onClose, onSave }) => {
@@ -235,14 +236,14 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
             <div className="text-2xl font-bold text-green-400">{stats.totalKeys}</div>
             <div className="text-sm text-gray-400">Keys Pressed</div>
           </div>
-          <div className="bg-gray-800 rounded-lg p-4 text-center">
+          {/* <div className="bg-gray-800 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-purple-400">{stats.accuracy}%</div>
             <div className="text-sm text-gray-400">Accuracy</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-4 text-center">
+          </div> */}
+          {/* <div className="bg-gray-800 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-yellow-400">{stats.keysPerMinute}</div>
             <div className="text-sm text-gray-400">Keys/Min</div>
-          </div>
+          </div> */}
         </div>
 
         {/* Rewards */}
@@ -263,19 +264,19 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
             )}
           </div>
           
-          <div className="grid grid-cols-1 gap-2 text-sm">
+          <div className="grid grid-cols-1 gap-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-400">Base Coins:</span>
+              <span className="text-gray-400">Coins:</span>
               <span className="text-yellow-400 font-medium">+{rewards.coins}</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span className="text-gray-400">Performance Bonus:</span>
               <span className="text-green-400 font-medium">+{Math.floor(score.current * 0.01)}</span>
             </div>
             <div className="flex justify-between font-medium">
               <span className="text-gray-300">Total Earned:</span>
               <span className="text-yellow-400">+{rewards.coins + Math.floor(score.current * 0.01)} BC</span>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -297,6 +298,31 @@ const GameResultsModal = ({ isOpen, onClose, onPlayAgain, onClaimRewards }) => {
             Play Again
           </Button>
         </div>
+      </div>
+    </Modal>
+  );
+};
+
+
+// Enhanced Game Results Modal
+const AdsModal = ({ isOpen, onClose }) => {
+
+  useEffect(() => {
+    if (isOpen) {
+
+    }
+  }, [isOpen]);
+
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Quảng cáo!" size="lg">
+      <div className="space-y-6">
+        <p>ads</p>
+        <img
+          src='https://marketingweek.imgix.net/content/uploads/2016/07/29160619/internet-ad.png?auto=compress,format&q=60&w=768&h=470'
+          alt="ads"
+          className="w-10 h-10 rounded-full object-cover"
+        />
       </div>
     </Modal>
   );
@@ -338,6 +364,7 @@ const GamePage = () => {
   // Local state
   const [showSettings, setShowSettings] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showAds, setShowAds] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [gameSettings, setGameSettings] = useState({
     soundEnabled: true,
@@ -388,7 +415,23 @@ const GamePage = () => {
   // Game handlers
   const handleStartGame = useCallback(async () => {
     try {
-      await startGame(musicId || 'default', gameSettings);
+      if (user.isShowAds) {
+        setShowAds(true);
+        let isAdsClosed = false;
+        setTimeout(() => {
+          setShowAds(false)
+          isAdsClosed = true;
+        }, 60000);
+        while (!isAdsClosed) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          if (!showAds) {
+            break;
+          }
+        }
+        await startGame(musicId || 'default', gameSettings);
+      } else {
+        await startGame(musicId || 'default', gameSettings);
+      }
     } catch (error) {
       toast.error('Failed to start game');
     }
@@ -671,6 +714,11 @@ const GamePage = () => {
         onClose={() => setShowResults(false)}
         onPlayAgain={handlePlayAgain}
         onClaimRewards={handleClaimRewards}
+      />
+
+      <AdsModal
+        isOpen={showAds}
+        onClose={() => {setShowAds(false)}}
       />
     </div>
   );

@@ -154,7 +154,7 @@ const DashboardPage = () => {
                   <div>
                     <p className="text-purple-300 text-sm font-medium">Best Score</p>
                     <p className="text-2xl font-bold text-white">{formatNumber(stats.bestScore)}</p>
-                    <p className="text-purple-400 text-sm">{stats.accuracy}% accuracy</p>
+                    {/* <p className="text-purple-400 text-sm">{stats.accuracy}% accuracy</p> */}
                   </div>
                   <div className="p-3 bg-purple-500/20 rounded-full">
                     <Trophy className="w-8 h-8 text-purple-400" />
