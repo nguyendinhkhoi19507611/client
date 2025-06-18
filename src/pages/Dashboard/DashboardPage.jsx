@@ -29,16 +29,16 @@ const DashboardPage = () => {
   // Mock dashboard data (loại bỏ thông tin combo)
   const dashboardData = useMemo(() => ({
     stats: {
-      totalCoins: user?.coins?.available || 1234.56,
+      totalCoins: user?.coins?.available || 0,
       todayEarnings: 45.23,
       weeklyEarnings: 312.89,
-      totalGames: user?.statistics?.totalGames || 89,
-      bestScore: user?.statistics?.bestScore || 98765,
-      currentLevel: user?.statistics?.level || 12,
-      currentExp: user?.statistics?.experience || 2450,
+      totalGames: user?.statistics?.totalGames || 0,
+      bestScore: user?.statistics?.bestScore || 0,
+      currentLevel: user?.statistics?.level || 0,
+      currentExp: user?.statistics?.experience || 0,
       nextLevelExp: 3000,
-      accuracy: user?.statistics?.accuracy || 87.5,
-      totalPlayTime: user?.statistics?.totalPlayTime || 15420
+      accuracy: user?.statistics?.accuracy || 0,
+      totalPlayTime: user?.statistics?.totalPlayTime || 0
     },
     recentGames: [
       {
@@ -135,7 +135,7 @@ const DashboardPage = () => {
                   <div>
                     <p className="text-yellow-300 text-sm font-medium">Total BigCoins</p>
                     <p className="text-2xl font-bold text-white">{formatNumber(stats.totalCoins)}</p>
-                    <p className="text-green-400 text-sm">+{formatNumber(stats.todayEarnings)} today</p>
+                    {/* <p className="text-green-400 text-sm">+{formatNumber(stats.todayEarnings)} today</p> */}
                   </div>
                   <div className="p-3 bg-yellow-500/20 rounded-full">
                     <Coins className="w-8 h-8 text-yellow-400" />

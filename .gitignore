@@ -21,7 +21,7 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.sw?1,234.56
 
 package-lock.json
 yarn.lock
