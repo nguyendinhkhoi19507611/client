@@ -506,7 +506,7 @@ const GamePage = () => {
                 Back to Music
               </Button>
               
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/dashboard')}
@@ -514,7 +514,7 @@ const GamePage = () => {
               >
                 <Home className="w-4 h-4 mr-2" />
                 Dashboard
-              </Button>
+              </Button> */}
             </div>
 
             {/* Music Info */}
@@ -548,7 +548,7 @@ const GamePage = () => {
         <GameStage className="mb-6" />
         
         {/* Enhanced Game Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+        {/* <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-black/40 backdrop-blur-sm rounded-lg p-4 text-center border border-white/10">
             <div className="text-2xl font-bold text-blue-400">{formatNumber(score.current)}</div>
             <div className="text-xs text-gray-400">Total Score</div>
@@ -573,7 +573,7 @@ const GamePage = () => {
             <div className="text-2xl font-bold text-red-400">{Math.floor(progress.progress)}%</div>
             <div className="text-xs text-gray-400">Progress</div>
           </div>
-        </div>
+        </div> */}
 
         {/* Progress Bar */}
         {isGameActive() && (
