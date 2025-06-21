@@ -16,31 +16,6 @@ const initialState = {
   isLoading: false
 };
 
-const languageReducer = (state, action) => {
-  switch (action.type) {
-    case LANGUAGE_ACTIONS.SET_LANGUAGE:
-      return {
-        ...state,
-        currentLanguage: action.payload
-      };
-    case LANGUAGE_ACTIONS.SET_TRANSLATIONS:
-      return {
-        ...state,
-        translations: {
-          ...state.translations,
-          [action.payload.language]: action.payload.translations
-        }
-      };
-    case LANGUAGE_ACTIONS.SET_LOADING:
-      return {
-        ...state,
-        isLoading: action.payload
-      };
-    default:
-      return state;
-  }
-};
-
 // Complete translations for all website content
 const defaultTranslations = {
   en: {
@@ -1156,6 +1131,7 @@ const defaultTranslations = {
   }
 };
 
+// Main reducer function - Fixed duplicate definition
 const languageReducer = (state, action) => {
   switch (action.type) {
     case LANGUAGE_ACTIONS.SET_LANGUAGE:
