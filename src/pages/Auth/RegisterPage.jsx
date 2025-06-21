@@ -1,14 +1,16 @@
-// Registration page component
+// src/pages/Auth/RegisterPage.jsx - Updated with complete translations
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Music, User, Gift } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import Button from '../../components/UI/Button';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { register, isAuthenticated, isRegistering } = useAuth();
+  const { t } = useLanguage();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -46,33 +48,33 @@ const RegisterPage = () => {
     const newErrors = {};
 
     if (!formData.username) {
-      newErrors.username = 'Username is required';
+      newErrors.username = t('auth.validation.usernameRequired');
     } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+      newErrors.username = t('auth.validation.usernameLength');
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      newErrors.username = t('auth.validation.usernameFormat');
     }
 
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('auth.validation.emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = t('auth.validation.emailInvalid');
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('auth.validation.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = t('auth.validation.passwordLength');
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = t('auth.validation.confirmPasswordRequired');
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('auth.validation.passwordMismatch');
     }
 
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+      newErrors.agreeToTerms = t('auth.validation.agreeTermsRequired');
     }
 
     setErrors(newErrors);
@@ -112,8 +114,8 @@ const RegisterPage = () => {
           <div className="w-20 h-20 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 mb-6">
             <Music className="w-full h-full text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Join BigCoin Piano</h2>
-          <p className="text-gray-300">Start earning cryptocurrency by playing piano</p>
+          <h2 className="text-3xl font-bold text-white mb-2">{t('auth.registerTitle')}</h2>
+          <p className="text-gray-300">{t('auth.startEarning')}</p>
         </motion.div>
 
         {/* Registration Form */}
@@ -127,7 +129,7 @@ const RegisterPage = () => {
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                Username
+                {t('auth.username')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -143,7 +145,7 @@ const RegisterPage = () => {
                   className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.username ? 'border-red-500' : 'border-gray-600'
                   }`}
-                  placeholder="Choose a username"
+                  placeholder={t('auth.chooseUsername')}
                 />
               </div>
               {errors.username && (
@@ -154,7 +156,7 @@ const RegisterPage = () => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
+                {t('auth.email')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -170,7 +172,7 @@ const RegisterPage = () => {
                   className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.email ? 'border-red-500' : 'border-gray-600'
                   }`}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.enterEmail')}
                 />
               </div>
               {errors.email && (
@@ -181,7 +183,7 @@ const RegisterPage = () => {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -197,7 +199,7 @@ const RegisterPage = () => {
                   className={`block w-full pl-10 pr-10 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.password ? 'border-red-500' : 'border-gray-600'
                   }`}
-                  placeholder="Create a password"
+                  placeholder={t('auth.createPassword')}
                 />
                 <button
                   type="button"
@@ -219,7 +221,7 @@ const RegisterPage = () => {
             {/* Confirm Password Field */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm Password
+                {t('auth.confirmPassword')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -235,7 +237,7 @@ const RegisterPage = () => {
                   className={`block w-full pl-10 pr-10 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.confirmPassword ? 'border-red-500' : 'border-gray-600'
                   }`}
-                  placeholder="Confirm your password"
+                  placeholder={t('auth.confirmYourPassword')}
                 />
                 <button
                   type="button"
@@ -254,30 +256,6 @@ const RegisterPage = () => {
               )}
             </div>
 
-            {/* Referral Code Field */}
-            {/* <div>
-              <label htmlFor="referralCode" className="block text-sm font-medium text-gray-300 mb-2">
-                Referral Code (Optional)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Gift className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="referralCode"
-                  name="referralCode"
-                  type="text"
-                  value={formData.referralCode}
-                  onChange={handleChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-600 rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="Enter referral code for bonus"
-                />
-              </div>
-              <p className="mt-1 text-xs text-green-400">
-                Get 50 bonus BigCoins with a valid referral code!
-              </p>
-            </div> */}
-
             {/* Terms Agreement */}
             <div>
               <div className="flex items-start">
@@ -291,14 +269,7 @@ const RegisterPage = () => {
                 />
                 <div className="ml-2">
                   <label htmlFor="agreeToTerms" className="text-sm text-gray-300">
-                    I agree to the{' '}
-                    <Link to="/terms" className="text-blue-400 hover:text-blue-300">
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link to="/privacy" className="text-blue-400 hover:text-blue-300">
-                      Privacy Policy
-                    </Link>
+                    {t('auth.agreeToTerms')}
                   </label>
                 </div>
               </div>
@@ -315,40 +286,19 @@ const RegisterPage = () => {
               size="lg"
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
-              Create Account
+              {t('auth.createAccount')}
             </Button>
           </form>
-
-          {/* Social Login */}
-          {/* <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
-              </div>
-            </div>
-            
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border border-gray-600 bg-gray-700/50 text-sm font-medium text-gray-300 hover:bg-gray-600/50 transition-colors">
-                Google
-              </button>
-              <button className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border border-gray-600 bg-gray-700/50 text-sm font-medium text-gray-300 hover:bg-gray-600/50 transition-colors">
-                Facebook
-              </button>
-            </div>
-          </div> */}
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-300">
-              Already have an account?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <Link
                 to="/login"
                 className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
               >
-                Sign in here
+                {t('auth.signInHere')}
               </Link>
             </p>
           </div>
@@ -361,12 +311,12 @@ const RegisterPage = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 rounded-xl p-4 border border-green-500/30"
         >
-          <h3 className="text-lg font-semibold text-green-400 mb-2">🎹 Start Earning Today!</h3>
+          <h3 className="text-lg font-semibold text-green-400 mb-2">{t('auth.benefits.title')}</h3>
           <ul className="text-sm text-gray-300 space-y-1">
-            <li>• 100 free BigCoins welcome bonus</li>
-            <li>• Earn coins for every perfect note</li>
-            <li>• Withdraw to real money or crypto</li>
-            <li>• Access to thousands of songs</li>
+            <li>{t('auth.benefits.welcomeBonus')}</li>
+            <li>{t('auth.benefits.earnCoins')}</li>
+            <li>{t('auth.benefits.withdraw')}</li>
+            <li>{t('auth.benefits.accessSongs')}</li>
           </ul>
         </motion.div>
       </div>

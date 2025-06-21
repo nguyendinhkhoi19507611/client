@@ -1,4 +1,4 @@
-// Landing page with hero section and features
+// src/pages/Home/HomePage.jsx - Updated with complete translations
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -16,6 +16,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { formatNumber } from '../../utils/formatters';
 import Button from '../../components/UI/Button';
 
@@ -58,25 +59,27 @@ const useQuery = (key, queryFn, options = {}) => {
 const HeroSection = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 150]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   const [currentSlide, setCurrentSlide] = useState(0);
+  
   const slides = [
     {
-      title: "Play Piano, Earn Crypto",
-      subtitle: "Mine BigCoins while mastering your musical skills",
+      title: t('hero.slide1.title'),
+      subtitle: t('hero.slide1.subtitle'),
       gradient: "from-blue-600 to-purple-600"
     },
     {
-      title: "Global Leaderboards",
-      subtitle: "Compete with players worldwide and showcase your talent",
+      title: t('hero.slide2.title'),
+      subtitle: t('hero.slide2.subtitle'),
       gradient: "from-green-600 to-blue-600"
     },
     {
-      title: "Real Rewards",
-      subtitle: "Convert your BigCoins to real money through secure withdrawal",
+      title: t('hero.slide3.title'),
+      subtitle: t('hero.slide3.subtitle'),
       gradient: "from-purple-600 to-pink-600"
     }
   ];
@@ -140,7 +143,7 @@ const HeroSection = () => {
               </div>
             </div>
             <h1 className="text-6xl font-bold font-display bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              BigCoin Piano
+              {t('hero.title')}
             </h1>
           </motion.div>
 
@@ -177,7 +180,7 @@ const HeroSection = () => {
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg px-8 py-4"
               >
                 <Play className="w-6 h-6 mr-2" />
-                Start Playing
+                {t('hero.startPlaying')}
               </Button>
             ) : (
               <>
@@ -186,7 +189,7 @@ const HeroSection = () => {
                   onClick={() => navigate('/register')}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-4"
                 >
-                  Get Started Free
+                  {t('hero.getStarted')}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
@@ -195,7 +198,7 @@ const HeroSection = () => {
                   onClick={() => navigate('/music')}
                   className="text-lg px-8 py-4 border-white/20 text-white hover:bg-white/10"
                 >
-                  Browse Music
+                  {t('hero.browseMusic')}
                 </Button>
               </>
             )}
@@ -212,24 +215,24 @@ const HeroSection = () => {
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
                 <Coins className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Earn Real Money</h3>
-              <p className="text-gray-300">Convert BigCoins to USD, VND, or crypto</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('features.earnRealMoney.title')}</h3>
+              <p className="text-gray-300">{t('features.earnRealMoney.description')}</p>
             </div>
             
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                 <Trophy className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Global Competition</h3>
-              <p className="text-gray-300">Compete in leaderboards and tournaments</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('features.globalCompetition.title')}</h3>
+              <p className="text-gray-300">{t('features.globalCompetition.description')}</p>
             </div>
             
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                 <Music className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Vast Music Library</h3>
-              <p className="text-gray-300">Thousands of songs across all genres</p>
+              <h3 className="text-xl font-semibold text-white mb-2">{t('features.vastMusicLibrary.title')}</h3>
+              <p className="text-gray-300">{t('features.vastMusicLibrary.description')}</p>
             </div>
           </motion.div>
 
@@ -264,29 +267,31 @@ const HeroSection = () => {
 
 // Features Section
 const FeaturesSection = () => {
+  const { t } = useLanguage();
+  
   const features = [
     {
       icon: <Zap className="w-12 h-12" />,
-      title: "Real-Time Mining",
-      description: "Earn BigCoins instantly as you play. Every perfect note adds to your wallet.",
+      title: t('features.realTimeMining.title'),
+      description: t('features.realTimeMining.description'),
       gradient: "from-yellow-500 to-orange-500"
     },
     {
       icon: <Shield className="w-12 h-12" />,
-      title: "Secure Blockchain",
-      description: "Built on secure blockchain technology with verified smart contracts.",
+      title: t('features.secureBlockchain.title'),
+      description: t('features.secureBlockchain.description'),
       gradient: "from-green-500 to-teal-500"
     },
     {
       icon: <Globe className="w-12 h-12" />,
-      title: "Global Community",
-      description: "Join players worldwide in the largest music-earning ecosystem.",
+      title: t('features.globalCommunity.title'),
+      description: t('features.globalCommunity.description'),
       gradient: "from-blue-500 to-purple-500"
     },
     {
       icon: <Users className="w-12 h-12" />,
-      title: "Multiplayer Modes",
-      description: "Challenge friends or compete in real-time multiplayer battles.",
+      title: t('features.multiplayerModes.title'),
+      description: t('features.multiplayerModes.description'),
       gradient: "from-purple-500 to-pink-500"
     }
   ];
@@ -302,10 +307,10 @@ const FeaturesSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Why Choose BigCoin Piano?
+            {t('features.title')}
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            The world's first blockchain-powered piano game that rewards your musical talent
+            {t('features.subtitle')}
           </p>
         </motion.div>
 
@@ -336,6 +341,7 @@ const FeaturesSection = () => {
 
 // Stats Section
 const StatsSection = () => {
+  const { t, formatNumber } = useLanguage();
   const { data: musicStats } = useQuery(
     'musicStats',
     () => mockMusicService.getMusicStats(),
@@ -344,23 +350,23 @@ const StatsSection = () => {
 
   const stats = [
     {
-      value: musicStats?.stats?.totalSongs || "1,000+",
-      label: "Songs Available",
+      value: musicStats?.stats?.totalSongs ? formatNumber(musicStats.stats.totalSongs) : "1,000+",
+      label: t('stats.songsAvailable'),
       icon: <Music className="w-8 h-8" />
     },
     {
       value: "50K+",
-      label: "Active Players",
+      label: t('stats.activePlayers'),
       icon: <Users className="w-8 h-8" />
     },
     {
       value: "$100K+",
-      label: "Rewards Paid",
+      label: t('stats.rewardsPaid'),
       icon: <Coins className="w-8 h-8" />
     },
     {
       value: "24/7",
-      label: "Mining Active",
+      label: t('stats.miningActive'),
       icon: <Zap className="w-8 h-8" />
     }
   ];
@@ -395,25 +401,27 @@ const StatsSection = () => {
 
 // Testimonials Section
 const TestimonialsSection = () => {
+  const { t } = useLanguage();
+  
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "Piano Teacher",
-      content: "I've earned over $500 this month just by playing songs I love. It's amazing!",
+      name: t('testimonials.testimonial1.name'),
+      role: t('testimonials.testimonial1.role'),
+      content: t('testimonials.testimonial1.content'),
       rating: 5,
       avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150"
     },
     {
-      name: "Mike Rodriguez",
-      role: "Music Student",
-      content: "The leaderboards keep me motivated to practice every day. Plus, I earn money!",
+      name: t('testimonials.testimonial2.name'),
+      role: t('testimonials.testimonial2.role'),
+      content: t('testimonials.testimonial2.content'),
       rating: 5,
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150"
     },
     {
-      name: "Emma Johnson",
-      role: "Professional Pianist",
-      content: "Perfect way to monetize my skills. The community is incredibly supportive.",
+      name: t('testimonials.testimonial3.name'),
+      role: t('testimonials.testimonial3.role'),
+      content: t('testimonials.testimonial3.content'),
       rating: 5,
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150"
     }
@@ -430,10 +438,10 @@ const TestimonialsSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            What Players Say
+            {t('testimonials.title')}
           </h2>
           <p className="text-xl text-gray-300">
-            Join thousands of satisfied musicians earning with BigCoin Piano
+            {t('testimonials.subtitle')}
           </p>
         </motion.div>
 
@@ -476,6 +484,7 @@ const TestimonialsSection = () => {
 const CTASection = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
@@ -487,11 +496,10 @@ const CTASection = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Start Earning?
+            {t('cta.title')}
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of musicians already earning BigCoins. 
-            Sign up today and get 100 free BigCoins to start!
+            {t('cta.subtitle')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -501,7 +509,7 @@ const CTASection = () => {
                 onClick={() => navigate('/dashboard')}
                 className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
               >
-                Go to Dashboard
+                {t('cta.goToDashboard')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             ) : (
@@ -511,7 +519,7 @@ const CTASection = () => {
                   onClick={() => navigate('/register')}
                   className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
                 >
-                  Start Playing Now
+                  {t('cta.startPlayingNow')}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
@@ -520,7 +528,7 @@ const CTASection = () => {
                   onClick={() => navigate('/login')}
                   className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4"
                 >
-                  Sign In
+                  {t('cta.signIn')}
                 </Button>
               </>
             )}
@@ -529,15 +537,15 @@ const CTASection = () => {
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
             <div className="flex items-center justify-center text-blue-100">
               <CheckCircle className="w-5 h-5 mr-2" />
-              No Credit Card Required
+              {t('cta.noCreditCard')}
             </div>
             <div className="flex items-center justify-center text-blue-100">
               <CheckCircle className="w-5 h-5 mr-2" />
-              Instant Rewards
+              {t('cta.instantRewards')}
             </div>
             <div className="flex items-center justify-center text-blue-100">
               <CheckCircle className="w-5 h-5 mr-2" />
-              Secure & Verified
+              {t('cta.secureVerified')}
             </div>
           </div>
         </motion.div>

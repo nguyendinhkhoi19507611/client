@@ -1,9 +1,10 @@
-// Login page component
+// src/pages/Auth/LoginPage.jsx - Updated with complete translations
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Music } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import Button from '../../components/UI/Button';
 import { toast } from 'react-hot-toast';
 
@@ -11,6 +12,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, isLoggingIn } = useAuth();
+  const { t } = useLanguage();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -45,15 +47,15 @@ const LoginPage = () => {
     const newErrors = {};
 
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('auth.validation.emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = t('auth.validation.emailInvalid');
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('auth.validation.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = t('auth.validation.passwordLength');
     }
 
     setErrors(newErrors);
@@ -92,8 +94,8 @@ const LoginPage = () => {
           <div className="w-20 h-20 mx-auto bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-4 mb-6">
             <Music className="w-full h-full text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-300">Sign in to your BigCoin Piano account</p>
+          <h2 className="text-3xl font-bold text-white mb-2">{t('auth.loginTitle')}</h2>
+          <p className="text-gray-300">{t('auth.signInToAccount')}</p>
         </motion.div>
 
         {/* Login Form */}
@@ -107,7 +109,7 @@ const LoginPage = () => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
+                {t('auth.email')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -123,7 +125,7 @@ const LoginPage = () => {
                   className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.email ? 'border-red-500' : 'border-gray-600'
                   }`}
-                  placeholder="Enter your email"
+                  placeholder={t('auth.enterEmail')}
                 />
               </div>
               {errors.email && (
@@ -134,7 +136,7 @@ const LoginPage = () => {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -150,7 +152,7 @@ const LoginPage = () => {
                   className={`block w-full pl-10 pr-10 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                     errors.password ? 'border-red-500' : 'border-gray-600'
                   }`}
-                  placeholder="Enter your password"
+                  placeholder={t('auth.enterPassword')}
                 />
                 <button
                   type="button"
@@ -181,14 +183,14 @@ const LoginPage = () => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-700"
                 />
                 <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-300">
-                  Remember me
+                  {t('auth.rememberMe')}
                 </label>
               </div>
               {/* <Link
                 to="/forgot-password"
                 className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
               >
-                Forgot password?
+                {t('auth.forgotPassword')}
               </Link> */}
             </div>
 
@@ -200,40 +202,19 @@ const LoginPage = () => {
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
-              Sign In
+              {t('auth.signIn')}
             </Button>
           </form>
-
-          {/* Social Login */}
-          {/* <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-800 text-gray-400">Or continue with</span>
-              </div>
-            </div>
-            
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border border-gray-600 bg-gray-700/50 text-sm font-medium text-gray-300 hover:bg-gray-600/50 transition-colors">
-                Google
-              </button>
-              <button className="w-full inline-flex justify-center py-2.5 px-4 rounded-lg border border-gray-600 bg-gray-700/50 text-sm font-medium text-gray-300 hover:bg-gray-600/50 transition-colors">
-                Facebook
-              </button>
-            </div>
-          </div> */}
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-300">
-              Don't have an account?{' '}
+              {t('auth.dontHaveAccount')}{' '}
               <Link
                 to="/register"
                 className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
               >
-                Sign up for free
+                {t('auth.signUpForFree')}
               </Link>
             </p>
           </div>
@@ -247,7 +228,7 @@ const LoginPage = () => {
           className="text-center"
         >
           <p className="text-sm text-gray-400">
-            Demo: demo@bigcoinpiano.com / password
+            {t('auth.demo')}
           </p>
         </motion.div>
       </div>

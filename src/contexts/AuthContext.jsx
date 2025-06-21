@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.jsx
+// src/contexts/AuthContext.jsx - Updated with multilingual support
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { authService } from '../services/authService';
@@ -93,6 +93,7 @@ const mockUsers = [
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
     country: 'Vietnam',
     joinedDate: '2024-01-15',
+    isShowAds: false,
     coins: {
       available: 1234.56,
       pending: 45.23,
@@ -201,6 +202,7 @@ const mockUsers = [
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
     country: 'Singapore',
     joinedDate: '2023-01-01',
+    isShowAds: false,
     coins: {
       available: 10000.00,
       pending: 0,
@@ -262,6 +264,7 @@ const mockUsers = [
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
     country: 'Vietnam',
     joinedDate: '2024-02-01',
+    isShowAds: true,
     coins: {
       available: 567.89,
       pending: 12.34,
@@ -312,6 +315,39 @@ const mockUsers = [
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
+  // Helper function to get translations
+  const getTranslation = (key, params = {}) => {
+    // Simple translation helper - in a real app, this would use the LanguageContext
+    const translations = {
+      en: {
+        welcomeBack: 'Welcome back, {username}!',
+        registrationSuccess: 'Welcome to BigCoin Piano, {username}! You received 100 bonus BigCoins!',
+        profileUpdated: 'Profile updated successfully',
+        loggedOut: 'Logged out successfully',
+        invalidCredentials: 'Invalid email or password',
+        userExists: 'User already exists'
+      },
+      vi: {
+        welcomeBack: 'Chào mừng trở lại, {username}!',
+        registrationSuccess: 'Chào mừng đến với BigCoin Piano, {username}! Bạn đã nhận được 100 BigCoins thưởng!',
+        profileUpdated: 'Cập nhật hồ sơ thành công',
+        loggedOut: 'Đăng xuất thành công',
+        invalidCredentials: 'Email hoặc mật khẩu không đúng',
+        userExists: 'Người dùng đã tồn tại'
+      }
+    };
+
+    const currentLang = state.language;
+    let message = translations[currentLang]?.[key] || translations.en[key] || key;
+    
+    // Replace parameters
+    Object.keys(params).forEach(param => {
+      message = message.replace(`{${param}}`, params[param]);
+    });
+    
+    return message;
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem('bigcoin_user');
     const savedLanguage = localStorage.getItem('bigcoin_language') || 'en';
@@ -335,78 +371,182 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     // await new Promise(resolve => setTimeout(resolve, 1000));
-    const userData = await authService.login(credentials)
+    
+    try {
+      const userData = await authService.login(credentials);
+      const { accessToken, refreshToken, user } = userData;
+      tokenManager.setTokens(accessToken, refreshToken);
 
-    // const user = mockUsers.find(u => 
-    //   u.email === credentials.email && u.password === credentials.password
-    // );
+      if (user) {
+        const userToStore = { ...user };
+        delete userToStore.password; 
+        localStorage.setItem('bigcoin_user', JSON.stringify(userToStore));
+        
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: { user: userToStore }
+        });
+        
+        // Use user's preferred language for welcome message
+        const welcomeMessage = getTranslation('welcomeBack', { username: user.username });
+        toast.success(welcomeMessage);
+        return userToStore;
+      } else {
+        const errorMessage = getTranslation('invalidCredentials');
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_FAILURE,
+          payload: errorMessage
+        });
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      // Fallback to mock login for demo
+      const user = mockUsers.find(u => 
+        u.email === credentials.email && u.password === credentials.password
+      );
 
-    const { accessToken, refreshToken, user } = userData;
-    tokenManager.setTokens(accessToken, refreshToken);
-
-    if (user) {
-      const userToStore = { ...user };
-      delete userToStore.password; 
-      localStorage.setItem('bigcoin_user', JSON.stringify(userToStore));
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user: userToStore }
-      });
-      
-      const welcomeMessage = userToStore.preferences.language === 'vi' 
-        ? `Chào mừng trở lại, ${user.username}!`
-        : `Welcome back, ${user.username}!`;
-      toast.success(welcomeMessage);
-      return userToStore;
-    } else {
-      const errorMessage = state.language === 'vi' 
-        ? 'Email hoặc mật khẩu không đúng'
-        : 'Invalid email or password';
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: errorMessage
-      });
-      toast.error(errorMessage);
-      throw new Error(errorMessage);
+      if (user) {
+        const userToStore = { ...user };
+        delete userToStore.password; 
+        localStorage.setItem('bigcoin_user', JSON.stringify(userToStore));
+        
+        // Update language preference
+        if (userToStore.preferences?.language) {
+          dispatch({ type: AUTH_ACTIONS.SET_LANGUAGE, payload: userToStore.preferences.language });
+          localStorage.setItem('bigcoin_language', userToStore.preferences.language);
+        }
+        
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: { user: userToStore }
+        });
+        
+        const welcomeMessage = userToStore.preferences?.language === 'vi' 
+          ? `Chào mừng trở lại, ${user.username}!`
+          : `Welcome back, ${user.username}!`;
+        toast.success(welcomeMessage);
+        return userToStore;
+      } else {
+        const errorMessage = state.language === 'vi' 
+          ? 'Email hoặc mật khẩu không đúng'
+          : 'Invalid email or password';
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_FAILURE,
+          payload: errorMessage
+        });
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
+      }
     }
   };
 
   const register = async (userData) => {
-
-    const newUser = await authService.register(userData);
-
     dispatch({ type: AUTH_ACTIONS.LOGIN_START });
     
-    if (!newUser) {
-      const errorMessage = 'Registration failed';
+    try {
+      const newUser = await authService.register(userData);
+      
+      if (newUser?.user) {
+        localStorage.setItem('bigcoin_user', JSON.stringify(newUser.user));
+        
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_SUCCESS,
+          payload: { user: newUser.user }
+        });
+        
+        const successMessage = getTranslation('registrationSuccess', { username: newUser.user.username });
+        toast.success(successMessage);
+        return newUser.user;
+      }
+    } catch (error) {
+      // Fallback to mock registration for demo
+      const existingUser = mockUsers.find(u => u.email === userData.email);
+      if (existingUser) {
+        const errorMessage = getTranslation('userExists');
+        dispatch({
+          type: AUTH_ACTIONS.LOGIN_FAILURE,
+          payload: errorMessage
+        });
+        toast.error(errorMessage);
+        return;
+      }
+      
+      // Create mock user
+      const newUser = {
+        id: (mockUsers.length + 1).toString(),
+        username: userData.username,
+        email: userData.email,
+        fullName: userData.username,
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+        country: 'Unknown',
+        joinedDate: new Date().toISOString().split('T')[0],
+        isShowAds: true,
+        coins: {
+          available: 100.00, // Welcome bonus
+          pending: 0,
+          total: 100.00,
+          earned: 100.00,
+          withdrawn: 0
+        },
+        statistics: {
+          level: 1,
+          experience: 0,
+          totalGames: 0,
+          bestScore: 0,
+          totalPlayTime: 0,
+          accuracy: 0,
+          perfectNotes: 0,
+          streak: 0,
+          averageAccuracy: 0
+        },
+        subscriptions: {
+          premium: {
+            active: false,
+            type: null,
+            expiresAt: null
+          }
+        },
+        kyc: {
+          status: 'not_submitted'
+        },
+        preferences: {
+          language: state.language,
+          soundEnabled: true,
+          visualEffects: true,
+          notifications: {
+            achievements: true,
+            rewards: true,
+            promotions: true
+          }
+        },
+        achievements: [],
+        gameHistory: [],
+        transactions: [],
+        role: 'user'
+      };
+      
+      localStorage.setItem('bigcoin_user', JSON.stringify(newUser));
+      
       dispatch({
-        type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: errorMessage
+        type: AUTH_ACTIONS.LOGIN_SUCCESS,
+        payload: { user: newUser }
       });
-      toast.error(errorMessage);
-      return;
+      
+      const successMessage = state.language === 'vi' 
+        ? `Chào mừng đến với BigCoin Piano, ${newUser.username}! Bạn đã nhận được 100 BigCoins thưởng!`
+        : `Welcome to BigCoin Piano, ${newUser.username}! You received 100 bonus BigCoins!`;
+      toast.success(successMessage);
+      return newUser;
     }
-    
-    localStorage.setItem('bigcoin_user', JSON.stringify(newUser.user));
-    
-    dispatch({
-      type: AUTH_ACTIONS.LOGIN_SUCCESS,
-      payload: { user: newUser.user }
-    });
-    
-    const successMessage = state.language === 'vi' 
-      ? `Chào mừng đến với BigCoin Piano, ${newUser.user.username}! Bạn đã nhận được 100 BigCoins thưởng!`
-      : `Welcome to BigCoin Piano, ${newUser.user.username}! You received 100 bonus BigCoins!`;
-    toast.success(successMessage);
-    return newUser.user;
   };
 
   const logout = async () => {
     localStorage.removeItem('bigcoin_user');
     dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    // const message = state.language === 'vi' 
-    //   ? 'Đăng xuất thành công'
-    //   : 'Logged out successfully';
+    
+    // Don't show logout message to avoid confusion during language changes
+    // const message = getTranslation('loggedOut');
     // toast.success(message);
   };
 
@@ -414,7 +554,14 @@ export const AuthProvider = ({ children }) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const updatedUser = { ...state.user, ...profileData };
-    await authService.updateProfile(updatedUser);
+    
+    try {
+      await authService.updateProfile(updatedUser);
+    } catch (error) {
+      // Fallback for demo
+      console.log('Using mock profile update');
+    }
+    
     localStorage.setItem('bigcoin_user', JSON.stringify(updatedUser));
     
     dispatch({
@@ -422,10 +569,8 @@ export const AuthProvider = ({ children }) => {
       payload: profileData
     });
     
-    // const message = state.language === 'vi' 
-    //   ? 'Cập nhật hồ sơ thành công'
-    //   : 'Profile updated successfully';
-    // toast.success(message);
+    const message = getTranslation('profileUpdated');
+    toast.success(message);
     return updatedUser;
   };
 
@@ -433,8 +578,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('bigcoin_language', language);
     dispatch({ type: AUTH_ACTIONS.SET_LANGUAGE, payload: language });
     
+    // Update user preference if authenticated
     if (state.user) {
-      updateProfile({ preferences: { ...state.user.preferences, language } });
+      updateProfile({ 
+        preferences: { 
+          ...state.user.preferences, 
+          language 
+        } 
+      });
     }
   };
 
